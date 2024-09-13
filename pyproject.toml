@@ -1,0 +1,87 @@
+[build-system]
+requires = [
+    "hatchling",
+    "hatch-pyinstaller",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "new-certificazione-770"
+dynamic = ["version"]
+description = 'Python EXE application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application.'
+readme = "README.md"
+requires-python = ">=3.8"
+license.file = "./LICENSE.txt"
+keywords = []
+authors = [
+  { name = "Dottorlink", email = "dottorlink@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",  
+]
+dependencies = [
+  "tkcalendar",
+  "pandas", 
+  "sv_ttk",
+  "darkdetect",
+  "sqlmodel", 
+  "openpyxl",
+  "pydantic"]
+
+[project.urls]
+Documentation = "https://github.com/dottorlink/new-herbalife-certificazione-770?tab=readme-ov-file#readme"
+Issues = "https://github.com/dottorlink/new-herbalife-certificazione-770/issues"
+Source = "https://github.com/dottorlink/new-herbalife-certificazione-770"
+
+[tool.hatch.version]
+path = "src/new_certificazione_770/__init__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/new_certificazione_770 tests}"
+
+[tool.coverage.run]
+source_pkgs = ["new_certificazione_770", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/new_certificazione_770/__about__.py",
+]
+
+[tool.coverage.paths]
+new_certificazione_770 = ["src/new_certificazione_770", "*/new-certificazione-770/src/new_certificazione_770"]
+tests = ["tests", "*/new-certificazione-770/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.hatch.build.targets.pyinstaller]
+require-runtime-dependencies = true
+scriptname = "./src/cli.py"
+paths = "./src/"
+flags = ["--clean", "--onedir", "--windowed"]
+collect-data = ["sv_ttk"]
+# collect-submodules = ["./src/new_certificazione_770/controllers", 
+#   "./src/new_certificazione_770/models", 
+  # "./src/new_certificazione_770/views"]
+log-level = "TRACE"
+icon = "./src/new_certificazione_770/main.ico"
+add-data = ["./src/new_certificazione_770/assets/*.png:assets", "./src/new_certificazione_770/main.ico:."]
+hidden-import = ['tkcalendar', 'babel.numbers', 'openpyxl']
+debug  = "all"
+optimize = 2
+version-file = "./version.rc"
+name = "new-certificazione-770"

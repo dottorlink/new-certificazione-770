@@ -1,0 +1,10 @@
+{
+    "python.analysis.extraPaths": [
+        "./src/new_certificazione_770"
+    ],
+    "cSpell.words": [
+        "darkdetect",
+        "padx",
+        "textvariable"
+    ]
+}
