@@ -35,9 +35,9 @@ dependencies = [
   "pydantic"]
 
 [project.urls]
-Documentation = "https://github.com/dottorlink/new-herbalife-certificazione-770?tab=readme-ov-file#readme"
-Issues = "https://github.com/dottorlink/new-herbalife-certificazione-770/issues"
-Source = "https://github.com/dottorlink/new-herbalife-certificazione-770"
+Documentation = "https://github.com/dottorlink/new-certificazione-770?tab=readme-ov-file#readme"
+Issues = "https://github.com/dottorlink/new-certificazione-770/issues"
+Source = "https://github.com/dottorlink/new-certificazione-770"
 
 [tool.hatch.version]
 path = "src/new_certificazione_770/__init__.py"
@@ -85,3 +85,20 @@ debug  = "all"
 optimize = 2
 version-file = "./version.rc"
 name = "new-certificazione-770"
+
+[tool.git-changelog]
+bump = "minor"
+convention = "conventional"
+in-place = false
+# figilter-commits = "0.0.1.."
+marker-line = "<!-- insertion marker -->"
+output = "CHANGELOG.md"
+parse-refs = false
+parse-trailers = false
+provider = "github"
+repository = "."
+sections = "build,deps,feat,fix,refactor"
+template = "keepachangelog"
+version-regex = "^## \\\\[(?P<version>v?[^\\\\]]+)"
+versioning = "semver"
+zerover = true

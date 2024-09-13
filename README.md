@@ -1,23 +1,36 @@
 # New Certificazione 770
 
-[![PyPI - Version](https://img.shields.io/pypi/v/new-certificazione-770.svg)](https://pypi.org/project/new-certificazione-770)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/new-certificazione-770.svg)](https://pypi.org/project/new-certificazione-770)
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/) ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fdottorlink%2Fnew-certificazione-770%2Fdevelop%2Fpyproject.toml)
 
------
 
-## Table of Contents
 
-- [Installation](#installation)
-- [License](#license)
+Python EXE application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application.
+
 
 ## Installation
 
+Install **New Certificazioni 770** with setup
+
 ```console
-launch new-certificazione-770-[VERSION]-setup.exe
+    new-certificazioni-770-[VERSION]-setup.exe
 ```
+
+To unistall application use Windows Unistall feature.
+
+    
+## Tech Stack
+
+**Client:** Python, Tk, Tkinter
+
+
+
+## Authors
+
+- [Dottorlink](https://www.github.com/dottorlink) - dottorlink@gmail..com
+
 
 ## License
 
-`New Certificazione 770` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+[MIT](https://choosealicense.com/licenses/mit/)
 
-For information read 'LICENSE.txt' file
+Read file `LICENSE.txt` for other information.
