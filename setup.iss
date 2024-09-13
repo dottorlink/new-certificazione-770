@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "New Certificazione 770"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.1"
 #define MyAppPublisher "Dottorlink <dottorlink@gmail.com>"
 #define MyAppURL "https://github.com/dottorlink/new-certificazione-770?tab=readme-ov-file#readme"
 #define MyAppExeName "new-certificazione-770.exe"
@@ -34,7 +34,7 @@ LicenseFile=LICENSE.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=release
+OutputDir=sdist
 OutputBaseFilename={#MyAppBaseName}-{#MyAppVersion}-setup
 SetupIconFile=src\new_certificazione_770\main.ico
 Compression=lzma
@@ -53,7 +53,6 @@ Source: "dist\new-certificazione-770\{#MyAppExeName}"; DestDir: "{app}"; Flags: 
 Source: "dist\new-certificazione-770\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\new-certificazione-770\new-certificazione-770.db"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
