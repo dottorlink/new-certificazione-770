@@ -53,7 +53,6 @@ Source: "dist\new-certificazione-770\{#MyAppExeName}"; DestDir: "{app}"; Flags: 
 Source: "dist\new-certificazione-770\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\new-certificazione-770\new-certificazione-770.db"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
