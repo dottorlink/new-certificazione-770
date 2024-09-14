@@ -40,11 +40,10 @@ from .views.widgets import Tableview
 
 # Own modules
 
-
 # Constants
 __package__ = "new-certificazione-770"
-__version__ = "1.0.0"
-__author__ = "@Dottorlink"
+__version__ = "1.0.1"
+__author__ = "Dottorlink"
 __copyright__ = "Copyright 2024, Dottorlink"
 __license__ = "GPL"
 __email__ = "dottorlink@gmail.com"
