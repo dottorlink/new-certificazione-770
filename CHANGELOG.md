@@ -6,9 +6,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
-## [0.1.0](https://github.com/dottorlink/new-certificazione-770/releases/tag/0.1.0) - 2024-09-13
+## [0.1.1](https://github.com/dottorlink/new-certificazione-770/releases/tag/0.1.0) - 2024-09-14
 
-* Initial version
+<small>[Compare with first commit](https://github.com/dottorlink/new-certificazione-770/compare/3fa608c17a1ed19242c35daa9b555006b90fe9bc...0.1.0)</small>
 
-<small>[Compare with first commit](https://github.com/dottorlink/new-certificazione-770/compare/298939527a2629d40f0c03318da4ea0f7cc53cb6...0.1.0)</small>
+### Build
+
+- update .gitignore, README.md and pyproject.toml ([64e80c0](https://github.com/dottorlink/new-certificazione-770/commit/64e80c08a285ba49386d578389382017193e5d32) by Davide Camilli).
+
+### Code Refactoring
+
+- :tada: Security commit ([eecb8c1](https://github.com/dottorlink/new-certificazione-770/commit/eecb8c1f7470de773e5a87faf143b31a22434a8b) by Davide Camilli).
 
