@@ -72,15 +72,21 @@ class DATCSVModel(BaseModel):
         default="",
         serialization_alias="Dati relativi al rappresentante - Codice fiscale Rappresentante",
     )
-    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_comune: str = Field(
-        default="",
-        serialization_alias="Indirizzo di residenza/Sede legale o (se diverso) Domicilio Fiscale - Comune",
+    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_comune: str = (
+        Field(
+            default="",
+            serialization_alias="Indirizzo di residenza/Sede legale o (se diverso) Domicilio Fiscale - Comune",
+        )
     )
-    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_provincia_sigla: str = Field(
+    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_provincia_sigla: (
+        str
+    ) = Field(
         default="",
         serialization_alias="Indirizzo di residenza/Sede legale o (se diverso) Domicilio Fiscale - Provincia (sigla)",
     )
-    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_frazione_via_e_numero_civico: str = Field(
+    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_frazione_via_e_numero_civico: (
+        str
+    ) = Field(
         default="",
         serialization_alias="Indirizzo di residenza/Sede legale o (se diverso) Domicilio Fiscale - Frazione, via e numero civico",
     )
@@ -88,7 +94,9 @@ class DATCSVModel(BaseModel):
         default="",
         serialization_alias="Indirizzo di residenza/Sede legale o (se diverso) Domicilio Fiscale - C.a.p.",
     )
-    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_posta_elettronica: str = Field(
+    indirizzo_di_residenza_sede_legale_o_se_diverso_domicilio_fiscale_posta_elettronica: (
+        str
+    ) = Field(
         default="",
         serialization_alias="Indirizzo di residenza/Sede legale o (se diverso) Domicilio Fiscale - Posta Elettronica",
     )
@@ -234,7 +242,9 @@ class DATCSVModel(BaseModel):
         default="",
         serialization_alias="Sez. Altri soggetti - Addizionale comunale sospesa",
     )
-    casi_particolari_operazioni_straordinarie_codice_fiscale_sezione_lavoro_autonomo_e_redditi_diversi: str = Field(
+    casi_particolari_operazioni_straordinarie_codice_fiscale_sezione_lavoro_autonomo_e_redditi_diversi: (
+        str
+    ) = Field(
         default="",
         serialization_alias="Casi particolari operazioni straordinarie - Codice fiscale sezione lavoro autonomo e redditi diversi",
     )
@@ -338,13 +348,15 @@ class DATFile:
                     "codice_fiscale_ente_previdenziale": self.code_ente_prev,
                     "denominazione_ente_previdenziale": self.denom_ente_prev,
                     "contributi_previdenziali_a_carico_del_soggetto_erogante": DATFile._format_float(
-                        record[9]
+                        # ! BUGFIX: wrong amount bug
+                        float(record[10])
+                        * 2
                     ),
                     "contributi_previdenziali_a_carico_del_percipiente": DATFile._format_float(
                         record[10]
                     ),
-                    "contributi_dovuti": DATFile._format_float(record[11]),
-                    "contributi_versati": DATFile._format_float(record[11]),
+                    "contributi_dovuti": DATFile._format_float(float(record[10]) * 3),
+                    "contributi_versati": DATFile._format_float(float(record[10]) * 3),
                 }
                 rec_json.update(rec_extra)
 
