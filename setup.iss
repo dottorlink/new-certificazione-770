@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "New Certificazione 770"
-#define MyAppVersion "0.1.1"
+#define MyAppVersion "0.2.0"
 #define MyAppPublisher "Dottorlink <dottorlink@gmail.com>"
 #define MyAppURL "https://github.com/dottorlink/new-certificazione-770/releases/latest"
 #define MyAppExeName "new-certificazione-770.exe"
