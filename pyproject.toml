@@ -26,6 +26,7 @@ dependencies = [
     "openpyxl",
     "pydantic",
     "pyinstaller>=6.10.0",
+    "git-changelog>=2.5.2",
 ]
 
 [project.urls]
@@ -102,4 +103,7 @@ distribution = false
 
 
 [tool.pdm.scripts]
-make_exe = {cmd = "pyinstaller --clean ./new-certificazione-770.spec"}
+pyinstaller = {cmd = "pyinstaller --clean --noconfirm ./new-certificazione-770.spec"}
+
+prova.call = "sc"
+prova.env_file = ".prova.env"
