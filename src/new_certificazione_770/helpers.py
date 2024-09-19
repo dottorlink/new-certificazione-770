@@ -14,7 +14,7 @@ Error:\n{}"""
 MSG_WARNING_TEMPLATE = """Process {} terminate with warning:
 Message:\n{}"""
 
-MSG_SUCCESS_TEMPLATE = """Process {} terminate with success!"""
+MSG_SUCCESS_TEMPLATE = """Process {} terminate with success"""
 
 
 def executable_path() -> str:

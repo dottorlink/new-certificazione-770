@@ -47,7 +47,7 @@ class DistributorDialog(BaseDialog):
         ]
 
         scroll_frm = ScrolledFrame(
-            master=body_frm, autohide=True, height=400, padding=10
+            master=body_frm, autohide=True, width=500, height=400, padding=10
         )
         scroll_frm.pack(side=tk.TOP, expand=1, fill=tk.BOTH)
 

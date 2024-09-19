@@ -1,20 +1,12 @@
-[build-system]
-requires = [
-    "hatchling",
-    "hatch-pyinstaller",
-]
-build-backend = "hatchling.build"
-
 [project]
 name = "new-certificazione-770"
-dynamic = ["version"]
-description = 'Python EXE application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application.'
+dynamic = ["version", "description"]
 readme = "README.md"
-requires-python = ">=3.8"
-license.file = "./LICENSE.txt"
+requires-python = "==3.12.*"
+license.text = "MIT"
 keywords = []
 authors = [
-  { name = "Dottorlink", email = "dottorlink@gmail.com" },
+    { name = "Dottorlink", email = "dottorlink@gmail.com" },
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -26,21 +18,23 @@ classifiers = [
   "Programming Language :: Python :: 3.12",  
 ]
 dependencies = [
-  "tkcalendar",
-  "pandas", 
-  "sv_ttk",
-  "darkdetect",
-  "sqlmodel", 
-  "openpyxl",
-  "pydantic"]
+    "tkcalendar",
+    "pandas",
+    "sv_ttk",
+    "darkdetect",
+    "sqlmodel",
+    "openpyxl",
+    "pydantic",
+    "pyinstaller>=6.10.0",
+]
 
 [project.urls]
 Documentation = "https://github.com/dottorlink/new-certificazione-770?tab=readme-ov-file#readme"
 Issues = "https://github.com/dottorlink/new-certificazione-770/issues"
 Source = "https://github.com/dottorlink/new-certificazione-770"
 
-[tool.hatch.version]
-path = "src/new_certificazione_770/__init__.py"
+[project.gui-scripts]
+new-certificazione-770 = "new-certificazione-770:main"
 
 [tool.hatch.envs.types]
 extra-dependencies = [
@@ -102,3 +96,10 @@ template = "keepachangelog"
 version-regex = "^## \\\\[(?P<version>v?[^\\\\]]+)"
 versioning = "semver"
 zerover = true
+
+[tool.pdm]
+distribution = false
+
+
+[tool.pdm.scripts]
+make_exe = {cmd = "pyinstaller --clean ./new-certificazione-770.spec"}

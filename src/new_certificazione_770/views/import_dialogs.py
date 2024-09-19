@@ -4,6 +4,7 @@ Import Dialog
 """
 
 # Built-in/Generic Imports
+import logging
 import os
 from typing import Any
 import csv
@@ -22,7 +23,7 @@ import pandas
 from ..controllers.controller import Controller
 from ..controllers.result_thread import ResultThread
 from ..models.base_models import Distributor, Invoice
-from ..helpers import MSG_ERROR_TEMPLATE, MSG_WARNING_TEMPLATE
+from ..helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
 from ..views.dialog import BaseDialog
 
 # Constants
@@ -210,12 +211,13 @@ class ImportDialog(BaseDialog):
 
     def browse(self, event=None):
         _action = "Choose file"
+        logging.debug(msg=_action)
         self.treeview.delete(*self.treeview.get_children())
         self.action_btn.config(state=tk.DISABLED, text=BTN_CONTROL)
         self.setvar(name=VAR_FILE_PATH, value="")
         self.setvar(name=VAR_MESSAGE, value=f"{_action}...")
         self._data_frame = None
-        _excel_file_path = filedialog.askopenfilename(
+        excel_file_path = filedialog.askopenfilename(
             parent=self,
             filetypes=[
                 ("Excel file (*.xls, *.xlsx, *.xlsm)", "*.xls *.xlsx *.xlsm"),
@@ -223,10 +225,11 @@ class ImportDialog(BaseDialog):
             ],
             title="Chose an excel file to import",
         )
-        if _excel_file_path:
+        if excel_file_path:
             _item = "file"
-            f_path, f_name = os.path.split(_excel_file_path)
-            self.setvar(name=VAR_FILE_PATH, value=_excel_file_path)
+            f_path, f_name = os.path.split(excel_file_path)
+            logging.info(msg=f"{_action}: {f_path=}, {f_name=}")
+            self.setvar(name=VAR_FILE_PATH, value=excel_file_path)
             self.setvar(name=VAR_MESSAGE, value="Ready to control")
             if self.treeview.exists(item=_item):
                 self.treeview.delete(_item)
@@ -257,16 +260,19 @@ class ImportDialog(BaseDialog):
     def control_excel_file(self) -> None:
         _excel_file = self.getvar(name=VAR_FILE_PATH)
         _action = THREAD_CONTROL_EXCEL
+        logging.debug(msg=_action)
         if _excel_file is None:
+            logging.warning(msg=f"{_action}: no file choose")
             msg = MSG_WARNING_TEMPLATE.format(_action, "No file choose")
             messagebox.showwarning(title=_action, message=msg, parent=self)
             return
-            return
+
         _model = self.getvar(name=VAR_IMPORT_TYPE)
 
         self.progress_bar.config(mode="indeterminate")
         self.progress_bar.start()
         self.action_btn.config(state=tk.DISABLED)
+
         _item = "control"
         self.setvar(name=VAR_MESSAGE, value=f"{_action}... Running")
         if self.treeview.exists(item=_item):
@@ -277,6 +283,8 @@ class ImportDialog(BaseDialog):
         self.treeview.see(item=_item)
         self.treeview.selection_set(_item)
 
+        _action = f"Start thread {THREAD_CONTROL_EXCEL}"
+        logging.debug(msg=_action)
         self._event = Event()
         _thread = ResultThread(
             name=THREAD_CONTROL_EXCEL,
@@ -290,10 +298,13 @@ class ImportDialog(BaseDialog):
         if self._data_frame is None:
             return
 
-        _action = "Check Controller"
         if self._controller is None:
+            # Check Controller
+            _action = "Check Controller"
+            logging.debug(msg=_action)
             self._controller = self._args.get("controller", None)
             if self._controller is None:
+                logging.error(msg=f"{_action}: No controller passed to dialog")
                 msg = MSG_ERROR_TEMPLATE.format(
                     _action, "No controller passed to dialog"
                 )
@@ -305,7 +316,9 @@ class ImportDialog(BaseDialog):
         self.progress_bar.config(mode="indeterminate")
         self.progress_bar.start()
 
+        # Import data
         _action = THREAD_IMPORT_DATA
+        logging.debug(msg=_action)
         _item = "import"
         self.browse_btn.config(state=tk.DISABLED)
         if self.treeview.exists(item=_item):
@@ -325,6 +338,7 @@ class ImportDialog(BaseDialog):
         _model = self.getvar(name=VAR_IMPORT_TYPE)
         if self.getvar(name=VAR_CHECK_DELETE) == 1:
             _action = "Delete table"
+            logging.debug(msg=_action)
             iid = self.treeview.insert(
                 parent=_item, index="end", text=_action, values=("Running")
             )
@@ -334,6 +348,7 @@ class ImportDialog(BaseDialog):
                 title=_action, message=msg, default="no", parent=self
             )
             if ask is None:
+                logging.warning(msg=f"{_action}: cancel")
                 self.treeview.item(item=iid, values=("Cancel"))
                 self.treeview.item(item=_item, values=("Cancel"))
                 self.progress_bar.stop()
@@ -346,7 +361,10 @@ class ImportDialog(BaseDialog):
                     self._controller.delete_table(model=_model)
                     self.setvar(name=VAR_MESSAGE, value=f"{_action}... Success")
                     self.treeview.item(item=iid, values=("Success"))
+                    msg = MSG_SUCCESS_TEMPLATE.format(_action)
+                    logging.info(msg=msg)
                 except Exception as e:
+                    logging.exception(msg=_action)
                     self.progress_bar.stop()
                     self.browse_btn.config(state=tk.NORMAL)
                     self.action_btn.config(state=tk.NORMAL)
@@ -357,22 +375,26 @@ class ImportDialog(BaseDialog):
                     messagebox.showerror(title=_action, message=msg, parent=self)
                     return
             else:
+                logging.warning(msg=f"{_action}: bypass by user")
                 self.treeview.item(item=iid, values=("Bypass"))
 
         # Add data to queue
         try:
             _action = "Add data to queue"
+            logging.debug(msg=_action)
             iid = self.treeview.insert(
                 parent=_item, index="end", text=_action, values=("Running")
             )
             self.treeview.see(item=iid)
             _model = self.getvar(name=VAR_IMPORT_TYPE)
             self._queue = add_item_to_queue(model=_model, in_data=self._data_frame)
-            _total = self._queue.maxsize
+            total = self._queue.maxsize
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Success")
-            msg = f"{_total:,d} record(s)"
-            self.treeview.item(item=iid, values=(msg))
+            self.treeview.item(item=iid, values=(f"{total:,d} record(s)"))
+            msg = MSG_SUCCESS_TEMPLATE.format(_action)
+            logging.info(msg=f"{msg}: records={total:,d}")
         except Exception as e:
+            logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
             self.browse_btn.config(state=tk.NORMAL)
@@ -384,8 +406,10 @@ class ImportDialog(BaseDialog):
             return
 
         # Start thread
+        _action = f"Start thread {THREAD_IMPORT_DATA}"
+        logging.debug(msg=_action)
         self.progress_bar.stop()
-        self.progress_bar.config(mode="determinate", value=0, maximum=_total)
+        self.progress_bar.config(mode="determinate", value=0, maximum=total)
         self._event = Event()
         _thread = ResultThread(
             name=THREAD_IMPORT_DATA,
@@ -415,6 +439,7 @@ class ImportDialog(BaseDialog):
             return
 
         _action = thread.name
+        logging.debug(msg=f"Thread {_action} terminated")
         self.progress_bar.stop()
         self._event = None
         self.action_btn.config(state=tk.NORMAL)
@@ -422,21 +447,23 @@ class ImportDialog(BaseDialog):
         self.action_btn.focus_set()
         if thread.name == THREAD_CONTROL_EXCEL:
             _item = "control"
-            _res_code, _res_msg, _res_data = thread.result
-            if _res_code < 0:
+            res_code, res_msg, res_data = thread.result
+            if res_code < 0:
+                logging.error(msg=f"{_action}: {res_code=}, {res_msg=}")
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error!")
                 self.treeview.item(item=_item, values=("Error"))
-                msg = MSG_ERROR_TEMPLATE.format(_action, _res_msg)
+                msg = MSG_ERROR_TEMPLATE.format(_action, res_msg)
                 messagebox.showerror(title=_action, message=msg, parent=self)
                 return
-            elif _res_code > 0:
+            elif res_code > 0:
+                logging.warning(msg=f"{_action}: {res_code=}, {res_msg=}")
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Warning!")
                 self.treeview.item(item=_item, values=("Warning"))
-                msg = MSG_WARNING_TEMPLATE.format(_action, _res_msg)
+                msg = MSG_WARNING_TEMPLATE.format(_action, res_msg)
                 messagebox.showwarning(title=_action, message=msg, parent=self)
                 return
             else:
-                self._data_frame = _res_data
+                self._data_frame = res_data
                 self.setvar(name=VAR_MESSAGE, value="Click on Import")
                 iid = self.treeview.insert(
                     parent=_item,
@@ -456,31 +483,36 @@ class ImportDialog(BaseDialog):
                     text=BTN_IMPORT_EXCEL, command=self.import_excel_file_data
                 )
                 self.action_btn.focus_set()
+                msg = MSG_SUCCESS_TEMPLATE.format(_action)
+                logging.info(msg=f"{msg}: records={len(self._data_frame):,d}")
                 return
 
         elif thread.name == THREAD_IMPORT_DATA:
             _item = "import"
-            _res_code, _res_msg, _res_data, _res_file_name = thread.result
-            if _res_code < 0:
+            res_code, res_msg, res_data, res_file_name = thread.result
+            if res_code < 0:
+                logging.error(msg=f"{_action}: {res_code=}, {res_msg=}")
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error!")
                 self.treeview.item(item=_item, values=("Error"))
-                msg = MSG_ERROR_TEMPLATE.format(_action, _res_msg)
+                msg = MSG_ERROR_TEMPLATE.format(_action, res_msg)
                 messagebox.showerror(title=_action, message=msg, parent=self)
                 return
-            elif _res_code > 0:
+            elif res_code > 0:
+                logging.warning(msg=f"{_action}: {res_code=}, {res_msg=}")
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Warning!")
                 self.treeview.item(item=_item, values=("Warning"))
-                msg = MSG_WARNING_TEMPLATE.format(_action, _res_msg)
+                msg = MSG_WARNING_TEMPLATE.format(_action, res_msg)
             else:
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Success!")
                 self.treeview.item(item=_item, values=("Success"))
-                msg = MSG_WARNING_TEMPLATE.format(_action, _res_msg)
+                msg = MSG_SUCCESS_TEMPLATE.format(_action, res_msg)
+                logging.info(msg=msg)
 
             self.treeview.see(item=_item)
-            if _res_data:
+            if res_data:
                 _total = self._queue.maxsize
                 msg += REPORT_TEMPLATE.format(
-                    _res_data[0], _res_data[1], _res_data[2], _total
+                    res_data[0], res_data[1], res_data[2], _total
                 )
                 self.treeview.insert(
                     parent=_item,
@@ -492,31 +524,33 @@ class ImportDialog(BaseDialog):
                     parent=_item,
                     index="end",
                     text="Inserted",
-                    values=(f"{_res_data[0]:,d}"),
+                    values=(f"{res_data[0]:,d}"),
                 )
                 self.treeview.insert(
                     parent=_item,
                     index="end",
                     text="Updated",
-                    values=(f"{_res_data[1]:,d}"),
+                    values=(f"{res_data[1]:,d}"),
                 )
                 iid = self.treeview.insert(
                     parent=_item,
                     index="end",
                     text="Error",
-                    values=(f"{_res_data[2]:,d}"),
+                    values=(f"{res_data[2]:,d}"),
                 )
                 self.treeview.item(item=_item, open=True)
                 self.treeview.see(item=iid)
                 self.treeview.selection_set(_item)
-            if _res_file_name and int(_res_data[2]) > 0:
+                logging.info(msg=f"{_action}: {res_data=}")
+            if res_file_name and int(res_data[2]) > 0:
+                logging.info(msg=f"{_action}: {res_file_name=}")
                 msg += (
                     "\n\nSome records were not entered due to an error."
                     "\nDo you want to open the temporary excel file with errors?"
                 )
                 ask = messagebox.askyesno(title=_action, message=msg, parent=self)
                 if ask:
-                    os.startfile(filepath=f"{_res_file_name}")
+                    os.startfile(filepath=f"{res_file_name}")
             else:
                 messagebox.showinfo(title=_action, message=msg, parent=self)
             self.result = "Ok"

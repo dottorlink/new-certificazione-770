@@ -14,11 +14,14 @@ import platform
 import tkinter as tk
 from tkinter import messagebox
 import tkinter.ttk as ttk
+import logging
+import logging.config
 
 # Modules
 import sv_ttk
 import darkdetect
 
+from new_certificazione_770 import *  # noqa: F403
 from .controllers.controller import Controller
 from .helpers import (
     DEFAULT_COMPANY,
@@ -41,19 +44,12 @@ from .views.widgets import Tableview
 # Own modules
 
 # Constants
-__package__ = "new-certificazione-770"
-__version__ = "1.0.1"
-__author__ = "Dottorlink"
-__copyright__ = "Copyright 2024, Dottorlink"
-__license__ = "GPL"
-__email__ = "dottorlink@gmail.com"
-__status__ = "Development"
 
 EXE_PATH = executable_path()
 RES_PATH = resource_path()
 
 # Button Constants
-BTN_ABOUT = f"About {__package__}"
+BTN_ABOUT = f"About {package}"
 BTN_COMPANY = "Company"
 BTN_EXIT = "Exit"
 BTN_EXPORT = "Export"
@@ -86,18 +82,23 @@ class MainApp(tk.Frame):
 
         try:
             _action = "Load images from assets folders"
+            logging.debug(msg=_action)
             self._load_images()
 
             _action = "Draw application"
+            logging.debug(msg=_action)
             self.create_menu_bar()
             self.create_status_bar()
             self.create_button_bar()
             self.create_left_panel()
             self.create_right_panel()
+
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
-            self.master.quit()
+            self.on_close()
+            return
 
         self.master.after(ms=200, func=self._initialize)
 
@@ -128,19 +129,22 @@ class MainApp(tk.Frame):
     def _initialize(self) -> None:
         try:
             if self.controller is None:
-                _db_path = os.path.join(EXE_PATH, f"{__package__}.db")
-                _action = f"Open/create database {_db_path}"
-                self.controller = Controller(db_path=_db_path, echo=False)
+                db_path = os.path.join(EXE_PATH, f"{package}.db")
+                _action = f"Open/create database: {db_path=}"
+                logging.debug(msg=_action)
+                self.controller = Controller(db_path=db_path, echo=False)
 
             if self.settings is None:
-                _action = "Get Settings from database"
-                self._get_settings()
+                self.settings = self._get_settings()
+
             _action = "Refresh treeview"
+            logging.debug(msg=_action)
             self.treeview_refresh()
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
-            self.master.quit()
+            self.on_close()
 
     def create_menu_bar(self) -> None:
         menu_items = {
@@ -303,9 +307,12 @@ class MainApp(tk.Frame):
         elif action == BTN_TOGGLE_THEME:
             self.toggle_theme()
         else:
-            print(f"Action {action} not implemented yet!")
+            _action = f"Action {action} not implemented yet!"
+            # print(_action)
+            logging.warning(msg=_action)
 
     def on_close(self):
+        self.destroy()
         self.master.quit()
 
     # Treeview action
@@ -313,12 +320,14 @@ class MainApp(tk.Frame):
         try:
             self.update_idletasks()
             _action = "Get all distributors from database"
+            logging.debug(msg=_action)
             self.setvar(name=VAR_STATUS_BAR, value=_action)
             self.configure(cursor="wait")
             _distribution_list = self.controller.get_all_distributors()
             if _distribution_list is None or len(_distribution_list) == 0:
                 self.configure(cursor="")
                 msg = "No data found for distributors on database!"
+                logging.warning(msg=msg)
                 msg += (
                     f"\n\nClick on button [{BTN_IMPORT}] to import new distributors from excel file"
                     f" or click on menu item [{BTN_USER_ADD}] to add new distributor"
@@ -326,7 +335,14 @@ class MainApp(tk.Frame):
                 messagebox.showwarning(title=_action, message=msg, parent=self.master)
                 return
 
+            msg = (
+                MSG_SUCCESS_TEMPLATE.format(_action)
+                + f": records={len(_distribution_list):,d}"
+            )
+            logging.info(msg=msg)
+
             _action = "Add distributors data on treeview"
+            logging.debug(msg=_action)
             _row_data = [
                 list(
                     dict(
@@ -343,6 +359,7 @@ class MainApp(tk.Frame):
             self.configure(cursor="")
             self.update_idletasks()
         except Exception as e:
+            logging.exception(msg=_action)
             self.configure(cursor="")
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
@@ -371,44 +388,38 @@ class MainApp(tk.Frame):
             msg += f" (Selected #{selected:,d} records)"
         self.setvar(name=VAR_STATUS_BAR, value=msg)
 
-    def treeview_sort(self, column, descending):
-        data = [
-            (self.treeview.set(item, column), item)
-            for item in self.treeview.get_children()
-        ]
-        data.sort(reverse=descending)
-        for index, (val, item) in enumerate(data):
-            self.treeview.move(item=item, parent="", index=index)
-        self.treeview.heading(
-            column=column,
-            command=lambda c=column: self.treeview_sort(
-                column=c, descending=not descending
-            ),
-        )
-
     def treeview_edit(self, event):
         """On treeview double button"""
         self.on_action(action=BTN_USER_EDIT)
 
     # Show dialogs
     def show_import(self):
+        """Show import dialog"""
         try:
-            _action = "Show dialog"
+            _action = "Show Import dialog"
+            logging.debug(msg=_action)
             _options = {"controller": self.controller}
             dlg = ImportDialog(parent=self.master, title=BTN_IMPORT, **_options)
             result = dlg.result
             if result:
                 self.treeview_refresh()
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
 
     def show_export(self):
+        """Show Export dialog"""
         try:
+            if self.settings is None:
+                self.settings = self._get_settings()
+
             _action = "Get years from Invoices on database"
-            _years = self.controller.get_years_from_invoices()
-            if len(_years) == 0:
+            logging.debug(msg=_action)
+            years = self.controller.get_years_from_invoices()
+            if len(years) == 0:
                 msg = "No valid Years found on database in table Invoices!"
+                logging.warning(msg=msg)
                 msg += f"\n\nTry to import Invoices with [{BTN_IMPORT}] button"
                 messagebox.showwarning(
                     title=BTN_EXPORT,
@@ -417,37 +428,38 @@ class MainApp(tk.Frame):
                 )
                 return
 
-            if self.settings is None:
-                _action = "Get Settings from database"
-                self._get_settings()
-
             _code_ente_prev = self.settings.get("code_ente_prev", EXPORT_CODE_ENTE_PREV)
             _denom_ente_prev = self.settings.get(
                 "denom_ente_prev", EXPORT_DENOM_ENTE_PREV
             )
 
-            _action = "Show dialog"
+            _action = "Show Export dialog"
+            logging.info(msg=f"{_action}: {years=}")
             _options = {
                 "code_ente_prev": _code_ente_prev,
                 "denom_ente_prev": _denom_ente_prev,
-                "years": _years,
+                "years": years,
                 "controller": self.controller,
             }
             ExportDialog(parent=self.master, title=BTN_EXPORT, **_options)
             self.treeview.focus_set()
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
             return
 
     def show_user_add(self):
+        """Show Distributor dialog for adding user"""
         try:
-            _action = "Show dialog"
+            _action = "Show Distributor dialog"
+            logging.debug(msg=_action)
             _args = {"image": "user-add", "model": Distributor}
             dlg = DistributorDialog(parent=self.master, title=BTN_USER_ADD, **_args)
             result = dlg.result
             if result:
                 _action = "Insert distributor"
+                logging.debug(msg=f"{_action}: {result=}")
                 record, _ = self.controller.update_distributor(record=result)
                 values = list(
                     dict(
@@ -460,69 +472,87 @@ class MainApp(tk.Frame):
                 _item = self.treeview.insert_row(index="end", values=values)
                 _iid = _item.iid
                 id = record.get("id", 0)
-                msg = f"{_action} success for id={id}"
+                msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
+                logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self.master)
 
             self.treeview.focus_set()
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
             return
 
     def show_company(self):
+        """Show Company dialog"""
         try:
             _action = "Get Company info from database"
-            _data = self.controller.get_company()
+            logging.debug(msg=_action)
+            data = self.controller.get_company()
+            if data is None:
+                logging.warning(msg=f"{_action}: no data found, setting default")
+                data = DEFAULT_COMPANY
 
-            if _data is None:
-                _data = DEFAULT_COMPANY
-
-            _action = "Show dialog"
-            _args = {"image": "company", "data": _data, "model": Company}
+            _action = "Show Company dialog"
+            logging.debug(msg=f"{_action}: {data=}")
+            _args = {"image": "company", "data": data, "model": Company}
             dlg = CompanyDialog(parent=self.master, title=BTN_COMPANY, **_args)
             result = dlg.result
             if result:
-                if result == _data:
+                if result == data:
+                    logging.warning(f"{_action}: no change")
                     return
+
                 _action = "Update company on database"
+                logging.debug(msg=f"{_action}: {result=}")
                 result, _ = self.controller.update_company(record=result)
-                msg = MSG_SUCCESS_TEMPLATE.format(_action)
+                msg = (
+                    MSG_SUCCESS_TEMPLATE.format(_action) + f" for id={result.get("id")}"
+                )
+                logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self.master)
             self.treeview.focus()
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
             return
 
     def show_user_edit(self):
+        """Show Distributor dialog for edit user"""
         try:
             _selected = self.treeview.get_rows(selected=True)
             if not _selected or len(_selected) == 0:
                 return
             id = _selected[0].values[0]
-            _action = f"Get distributor from database: {id=}"
-            distributor = self.controller.get_distributor_by_id(id)
+            _action = "Get distributor from database"
+            logging.debug(msg=f"{_action}: {id=}")
+            data = self.controller.get_distributor_by_id(id)
 
-            if distributor is None:
+            if data is None:
                 msg = f"No distributor found on database for {id=}!"
+                logging.warning(msg=msg)
                 messagebox.showwarning(
                     title=BTN_USER_EDIT, message=msg, parent=self.master
                 )
                 return
 
-            _action = "Show dialog"
+            _action = "Show Distributor dialog"
+            logging.debug(msg=f"{_action}: {data=}")
             _args = {
                 "image": "user-edit",
-                "data": distributor,
+                "data": data,
                 "model": Distributor,
             }
             dlg = DistributorDialog(parent=self.master, title=BTN_USER_EDIT, **_args)
             result = dlg.result
             if result:
-                if result == distributor:
+                if result == data:
+                    logging.warning(f"{_action}: no change")
                     return
 
                 _action = "Update distributor"
+                logging.debug(msg=f"{_action}: {result=}")
                 record, _ = self.controller.update_distributor(record=result)
                 values = list(
                     dict(
@@ -535,56 +565,74 @@ class MainApp(tk.Frame):
                 item = _selected[0]
                 item.values = values
                 item.refresh()
-                msg = f"{_action} success for {id=}"
+                msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
+                logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self.master)
             self.treeview.focus_set()
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
 
     def show_about(self) -> None:
-        """Show about dialog"""
+        """Show About dialog"""
         try:
-            _action = "Show about dialog"
+            _action = "Show About dialog"
+            logging.debug(msg=_action)
             uname = platform.uname()
-            title = f"About {__package__}"
+            title = f"About {package}"
+            txt = "-" * 20
             msg = (
-                f"Name: {__package__}"
-                f"\n\nVersion: {__version__}"
-                f"\n\nAuthor: {__author__}: {__email__}"
-                f"\n\n\nPython version: {platform.python_version()}"
+                f"Name: {package}"
+                f"\nVersion: {version}"
+                f"\nAuthor: {author} <{email}>"
+                f"\n{txt}"
+                f"\nCopyright: {copyright}"
+                f"\nLicense: {license}"
+                f"\n{txt}"
+                f"\nDescription:\n{description}"
+                f"\n{txt}"
+                f"\nPython version: {platform.python_version()}"
                 f"\nOS: {uname.system} {uname.release} v.{uname.version}"
                 f"\nMachine: {uname.machine}"
             )
             messagebox.showinfo(title=title, message=msg, parent=self.master)
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
 
     def show_settings(self):
+        """Show Settings dialog"""
         try:
             if self.settings is None:
-                _action = "Get Settings from database"
-                self._get_settings()
+                self.settings = self._get_settings()
 
-            _action = "Show dialog"
+            data = self.settings
+            _action = "Show Settings dialog"
+            logging.debug(msg=f"{_action}: {data=}")
             _args = {
                 "image": "settings",
-                "data": self.settings,
+                "data": data,
                 "model": Setting,
             }
             dlg = SettingsDialog(parent=self.master, title=BTN_SETTINGS, **_args)
             result = dlg.result
             if result:
-                if result == self.settings:
+                if result == data:
+                    logging.warning(f"{_action}: no change")
                     return
+
                 _action = "Update settings on database"
+                logging.debug(msg=f"{_action}: {result=}")
                 record, _ = self.controller.update_settings(record=result)
                 self.settings = record
                 msg = MSG_SUCCESS_TEMPLATE.format(_action)
+                logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self.master)
             self.treeview.focus_set()
         except Exception as e:
+            logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
 
@@ -597,6 +645,7 @@ class MainApp(tk.Frame):
 
             _action = "Ask delete distributor"
             total = len(_selected)
+            logging.debug(msg=f"{_action}: {total=}")
             if total == 1:
                 id = int(_selected[0].values[0])
                 number = _selected[0].values[1]
@@ -608,19 +657,25 @@ class MainApp(tk.Frame):
                 title=_action, message=msg, parent=self, default="no"
             )
             if not ask:
+                logging.debug(msg=f"{_action} cancelled by user")
                 return
 
+            # Delete distributor
             _action = "Delete distributor"
             self.master.config(cursor="watch")
-            _ids = [item.values[0] for item in _selected]
-            _iids = [item.iid for item in _selected]
-            self.controller.delete_distributor_by_id(ids=_ids)
-            self.treeview.delete_rows(iids=_iids)
+            ids = [item.values[0] for item in _selected]
+            iids = [item.iid for item in _selected]
+            logging.debug(msg=f"{_action}: {ids=}")
+
+            self.controller.delete_distributor_by_id(ids=ids)
+            self.treeview.delete_rows(iids=iids)
             self.master.config(cursor="")
-            msg = MSG_SUCCESS_TEMPLATE.format(_action)
+            msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {ids}"
+            logging.info(msg=msg)
             messagebox.showinfo(title=_action, message=msg, parent=self.master)
             self.treeview.focus_set()
         except Exception as e:
+            logging.exception(msg=_action)
             self.master.config(cursor="")
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self.master)
@@ -628,30 +683,42 @@ class MainApp(tk.Frame):
     def toggle_theme(self) -> None:
         if sv_ttk.get_theme() == "dark":
             sv_ttk.use_light_theme()
+            msg = "Set light theme"
+            logging.debug(msg=msg)
         elif sv_ttk.get_theme() == "light":
             sv_ttk.use_dark_theme()
+            msg = "Set dark theme"
+            logging.debug(msg=msg)
         else:
-            print("Not Sun Valley theme")
-            pass
+            msg = "Not Sun Valley theme"
+            logging.warning(msg=msg)
 
-    def _get_settings(self) -> None:
-        if self.settings is None:
-            _data = self.controller.get_settings()
-            if _data is None:
-                _data = DEFAULT_SETTINGS
-            self.settings = _data
+    def _get_settings(self) -> dict:
+        _action = "Get Settings from database"
+        logging.debug(msg=_action)
+        data = self.controller.get_settings()
+        if data is None:
+            logging.warning(msg=f"{_action}: no data found, setting default")
+            data = DEFAULT_SETTINGS
+        logging.info(msg=f"{_action}: {data=}")
+        return data
 
 
 def main() -> None:
     """Main function"""
+    logging.config.dictConfig(LOGGING_CONFIG)
+    logging.info(msg="-" * 50)
+    logging.info(msg="Start application")
     root = tk.Tk()
     sv_ttk.set_theme(theme=darkdetect.theme(), root=root)
-    root.title(f"{__package__} v.{__version__}")
+    root.title(f"{package} v.{version}")
     root.geometry("{}x{}".format(1000, 800))
     root.minsize(width=800, height=800)
     root.iconbitmap(bitmap=os.path.join(RES_PATH, "main.ico"))
     MainApp(master=root)
     root.mainloop()
+    logging.info("End application")
+    logging.info(msg="-" * 50)
 
 
 if __name__ == "__main__":
