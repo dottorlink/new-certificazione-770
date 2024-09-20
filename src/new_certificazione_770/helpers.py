@@ -2,6 +2,7 @@
 # Built-in/Generic Imports
 import os
 import sys
+from ctypes import WinDLL
 
 # Libs
 
@@ -60,3 +61,15 @@ DEFAULT_COMPANY = {
     "activity_code": "479910",
     "activity_type": "01",
 }
+
+
+def instance_check(app_name: str):
+    u32dll = WinDLL("user32")
+    # get the handle of any window matching app_name
+    hwnd = u32dll.FindWindowW(None, app_name)
+    if hwnd:  # if a matching window exists...
+        # focus the existing window
+        u32dll.ShowWindow(hwnd, 5)
+        u32dll.SetForegroundWindow(hwnd)
+        # bail
+    return True

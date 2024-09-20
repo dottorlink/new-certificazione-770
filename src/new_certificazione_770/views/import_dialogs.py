@@ -11,7 +11,7 @@ import csv
 from queue import Queue
 import tempfile
 import tkinter as tk
-import tkinter.ttk as ttk
+from tkinter import ttk
 from tkinter import filedialog, messagebox
 from threading import Event
 
@@ -19,12 +19,11 @@ from threading import Event
 import pandas
 
 # Own modules
-# from views.dialog import Dialog
-from ..controllers.controller import Controller
-from ..controllers.result_thread import ResultThread
-from ..models.base_models import Distributor, Invoice
-from ..helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
-from ..views.dialog import BaseDialog
+from controllers.controller import Controller
+from controllers.result_thread import ResultThread
+from models.base_models import Distributor, Invoice
+from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
+from views.dialog import BaseDialog
 
 # Constants
 VAR_FILE_PATH = "file_path"
@@ -128,15 +127,15 @@ class ImportDialog(BaseDialog):
         frm = ttk.LabelFrame(master=body_frm, padding=5, text=f"{_ind}. Import type:")
         frm.pack(side=tk.TOP, fill=tk.X)
         options = [Distributor.__name__, Invoice.__name__]
-        ent = ttk.Combobox(
+        self.import_type_opt = ttk.Combobox(
             master=frm,
             textvariable=VAR_IMPORT_TYPE,
             state="readonly",
             values=options,
         )
-        self.setvar(name=VAR_IMPORT_TYPE, value=options[0])
-        ent.bind(sequence="<<ComboboxSelected>>", func=self.import_type_select)
-        ent.pack(side=tk.TOP, fill=tk.X, padx=5)
+        self.setvar(name=VAR_IMPORT_TYPE, value=options[1])
+        self.import_type_opt.bind(sequence="<<ComboboxSelected>>", func=self.select_import_type)
+        self.import_type_opt.pack(side=tk.TOP, fill=tk.X, padx=5)
 
         ent = ttk.Checkbutton(
             master=frm,
@@ -147,7 +146,7 @@ class ImportDialog(BaseDialog):
             onvalue=True,
             offvalue=False,
         )
-        self.setvar(name=VAR_CHECK_DELETE, value=False)
+        self.setvar(name=VAR_CHECK_DELETE, value=True)
         ent.pack(side=tk.TOP, fill=tk.X, padx=5)
 
         # Message frame
@@ -209,7 +208,12 @@ class ImportDialog(BaseDialog):
             return
         return super().cancel()
 
-    def browse(self, event=None):
+    def browse(self):
+        """Browse action
+
+        Args:
+            event (_type_, optional): _description_. Defaults to None.
+        """
         _action = "Choose file"
         logging.debug(msg=_action)
         self.treeview.delete(*self.treeview.get_children())
@@ -258,6 +262,8 @@ class ImportDialog(BaseDialog):
             self.setvar(name=VAR_MESSAGE, value="Choose a file")
 
     def control_excel_file(self) -> None:
+        """Control excel file action
+        """
         _excel_file = self.getvar(name=VAR_FILE_PATH)
         _action = THREAD_CONTROL_EXCEL
         logging.debug(msg=_action)
@@ -272,6 +278,8 @@ class ImportDialog(BaseDialog):
         self.progress_bar.config(mode="indeterminate")
         self.progress_bar.start()
         self.action_btn.config(state=tk.DISABLED)
+        self.import_type_opt.config(state=tk.DISABLED)
+        
 
         _item = "control"
         self.setvar(name=VAR_MESSAGE, value=f"{_action}... Running")
@@ -288,13 +296,15 @@ class ImportDialog(BaseDialog):
         self._event = Event()
         _thread = ResultThread(
             name=THREAD_CONTROL_EXCEL,
-            target=thread_control_excel_file,
+            target=_thread_control_excel_file,
             args=(_excel_file, _model, self._event),
         )
         _thread.start()
         self.after(ms=200, func=lambda t=_thread: self.monitor_thread(thread=t))
 
     def import_excel_file_data(self):
+        """Import excel file data process
+        """
         if self._data_frame is None:
             return
 
@@ -387,7 +397,7 @@ class ImportDialog(BaseDialog):
             )
             self.treeview.see(item=iid)
             _model = self.getvar(name=VAR_IMPORT_TYPE)
-            self._queue = add_item_to_queue(model=_model, in_data=self._data_frame)
+            self._queue = _add_item_to_queue(model=_model, in_data=self._data_frame)
             total = self._queue.maxsize
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Success")
             self.treeview.item(item=iid, values=(f"{total:,d} record(s)"))
@@ -413,15 +423,26 @@ class ImportDialog(BaseDialog):
         self._event = Event()
         _thread = ResultThread(
             name=THREAD_IMPORT_DATA,
-            target=thread_import_data_on_db,
+            target=_thread_import_data_on_db,
             args=(self._controller, _model, self._queue, self._event),
         )
         _thread.start()
         self.after(ms=200, func=lambda t=_thread: self.monitor_thread(thread=t))
 
-    def import_type_select(self, event=None):
+    def select_import_type(self, event=None):
+        """Change import type selection event
+
+        Args:
+            event (_type_, optional): _description_. Defaults to None.
+        """
         if self.getvar(name=VAR_IMPORT_TYPE) == Invoice.__name__:
             self.setvar(name=VAR_CHECK_DELETE, value=True)
+        # Change action button
+        self.action_btn.config(
+                text=BTN_CONTROL,
+                command=self.control_excel_file,
+            )
+        
 
     def monitor_thread(self, thread: ResultThread) -> None:
         if thread.is_alive():
@@ -444,6 +465,7 @@ class ImportDialog(BaseDialog):
         self._event = None
         self.action_btn.config(state=tk.NORMAL)
         self.browse_btn.config(state=tk.NORMAL)
+        self.import_type_opt.config(state=tk.NORMAL)        
         self.action_btn.focus_set()
         if thread.name == THREAD_CONTROL_EXCEL:
             _item = "control"
@@ -557,7 +579,7 @@ class ImportDialog(BaseDialog):
             return
 
 
-def add_item_to_queue(model: str, in_data: Any):
+def _add_item_to_queue(model: str, in_data: Any):
     _queue: Queue
     if model == Distributor.__name__:
         columns_map = [(v[0], v[2]) for v in DISTRIBUTOR_FIELDS_LIST]
@@ -574,7 +596,7 @@ def add_item_to_queue(model: str, in_data: Any):
     return _queue
 
 
-def thread_control_excel_file(excel_file: str, model: str, event: Event):
+def _thread_control_excel_file(excel_file: str, model: str, event: Event):
     # Initialize
     try:
         _exit: int = 0
@@ -648,7 +670,7 @@ def thread_control_excel_file(excel_file: str, model: str, event: Event):
         return (_exit, _msg, _data_frame)
 
 
-def thread_import_data_on_db(
+def _thread_import_data_on_db(
     controller: Controller, model: str, queue: Queue, event: Event
 ):
     try:

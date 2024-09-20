@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-description
+Main module
 
 @File: main.py
 @Date: 2024-08-14
@@ -10,6 +10,7 @@ description
 
 # Libs
 import os
+import sys
 import platform
 import tkinter as tk
 from tkinter import messagebox
@@ -20,10 +21,11 @@ import logging.config
 # Modules
 import sv_ttk
 import darkdetect
+import pywinstyles
 
-from new_certificazione_770 import *  # noqa: F403
-from .controllers.controller import Controller
-from .helpers import (
+from config import * 
+from controllers.controller import Controller
+from helpers import (
     DEFAULT_COMPANY,
     DEFAULT_SETTINGS,
     EXPORT_CODE_ENTE_PREV,
@@ -32,14 +34,16 @@ from .helpers import (
     MSG_SUCCESS_TEMPLATE,
     executable_path,
     resource_path,
+    instance_check
 )
-from .models.base_models import Company, Distributor, Setting
-from .views.company_dialog import CompanyDialog
-from .views.distributor_dialog import DistributorDialog
-from .views.export_dialogs import ExportDialog
-from .views.import_dialogs import ImportDialog
-from .views.settings_dialog import SettingsDialog
-from .views.widgets import Tableview
+from models.base_models import Company, Distributor, Setting
+from views.company_dialog import CompanyDialog
+from views.distributor_dialog import DistributorDialog
+from views.export_dialogs import ExportDialog
+from views.import_dialogs import ImportDialog
+from views.about import AboutDialog
+from views.settings_dialog import SettingsDialog
+from views.widgets import Tableview
 
 # Own modules
 
@@ -49,7 +53,7 @@ EXE_PATH = executable_path()
 RES_PATH = resource_path()
 
 # Button Constants
-BTN_ABOUT = f"About {package}"
+BTN_ABOUT = f"About {PACKAGE}"
 BTN_COMPANY = "Company"
 BTN_EXIT = "Exit"
 BTN_EXPORT = "Export"
@@ -70,10 +74,20 @@ VAR_STATUS_BAR = "status_bar"
 VAR_SEARCH = "search_text"
 
 
-class MainApp(tk.Frame):
-    def __init__(self, master, **kwargs) -> None:
-        super().__init__(master=master, **kwargs)
-        self.pack(fill=tk.BOTH, expand=tk.YES)
+class NewCertificazioni770(tk.Tk):
+    """Main Tk Window
+
+    Args:
+        tk (_type_): _description_
+    """
+    def __init__(self) -> None:
+        super().__init__()
+        self.withdraw()
+        self.title(f"{PACKAGE} v.{VERSION}")
+        self.geometry("{}x{}".format(1000, 800))
+        self.minsize(width=800, height=800)
+        self.iconbitmap(bitmap=os.path.join(RES_PATH, "assets", "main.ico"))
+        
         self.body_frm = ttk.Frame(master=self)
         self.body_frm.pack(fill=tk.BOTH, expand=tk.YES, side=tk.TOP)
 
@@ -96,11 +110,13 @@ class MainApp(tk.Frame):
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
             self.on_close()
             return
-
-        self.master.after(ms=200, func=self._initialize)
+        
+        self.protocol("WM_DELETE_WINDOW", func=self.on_close)
+        self.deiconify()
+        self.after(ms=200, func=self._initialize)
 
     def _load_images(self) -> None:
         """Load images from assets folders"""
@@ -129,7 +145,7 @@ class MainApp(tk.Frame):
     def _initialize(self) -> None:
         try:
             if self.controller is None:
-                db_path = os.path.join(EXE_PATH, f"{package}.db")
+                db_path = os.path.join(EXE_PATH, f"{PACKAGE}.db")
                 _action = f"Open/create database: {db_path=}"
                 logging.debug(msg=_action)
                 self.controller = Controller(db_path=db_path, echo=False)
@@ -143,7 +159,7 @@ class MainApp(tk.Frame):
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
             self.on_close()
 
     def create_menu_bar(self) -> None:
@@ -175,10 +191,10 @@ class MainApp(tk.Frame):
                 BTN_ABOUT,
             ],
         }
-        self.master.option_add(pattern="*tearOff", value=False)
-        menu_bar = tk.Menu(master=self.master)
+        self.option_add(pattern="*tearOff", value=False)
+        menu_bar = tk.Menu(master=self)
         for key, val in menu_items.items():
-            mnu = tk.Menu(master=self.master)
+            mnu = tk.Menu(menu_bar, tearoff=0)
             for item in val:
                 if item == "---":
                     mnu.add_separator()
@@ -187,11 +203,15 @@ class MainApp(tk.Frame):
                     label=item, command=lambda a=item: self.on_action(action=a)
                 )
             menu_bar.add_cascade(label=key, menu=mnu)
-        self.master.configure(menu=menu_bar)
+        self.configure(menu=menu_bar)
 
     def create_left_panel(self):
         left_panel_frm = ttk.Frame(master=self.body_frm, style="Card.TFrame")
         left_panel_frm.pack(side=tk.LEFT, fill=tk.Y)
+
+        lbl = ttk.Label(master=left_panel_frm, image="logo-small", anchor="center")
+        lbl.pack(side=tk.TOP, fill=tk.X, pady=5)
+
         buttons_list = {
             BTN_IMPORT: "import",
             BTN_EXPORT: "export",
@@ -268,15 +288,17 @@ class MainApp(tk.Frame):
         self.treeview.view.bind(sequence="<<Focus>>", func=self.treeview_select)
         self.treeview.view.bind(sequence="<<Activate>>", func=self.treeview_select)
         self.treeview.view.bind(sequence="<<Backspace>>", func=self.show_user_delete)
+        self.treeview.view.bind(sequence="<ButtonRelease-1>", func=self.treeview_select)
         self.treeview.view.bind(sequence="<Double-1>", func=self.treeview_edit)
 
     def create_status_bar(self) -> None:
         """Create StatusBar frame."""
-        status_bar_frm = ttk.Frame(master=self, border=1, height=50, relief=tk.SUNKEN)
+        status_bar_frm = ttk.Frame(master=self, border=1, height=50, relief=tk.GROOVE)
         status_bar_frm.pack(fill=tk.X, side=tk.BOTTOM)
         lbl = ttk.Label(
             master=status_bar_frm,
             padding=5,
+            relief=tk.GROOVE,
             textvariable=VAR_STATUS_BAR,
         )
         self.setvar(name=VAR_STATUS_BAR, value="Ready")
@@ -312,8 +334,8 @@ class MainApp(tk.Frame):
             logging.warning(msg=_action)
 
     def on_close(self):
-        self.destroy()
-        self.master.quit()
+        # self.destroy()
+        self.quit()
 
     # Treeview action
     def treeview_refresh(self) -> None:
@@ -332,7 +354,7 @@ class MainApp(tk.Frame):
                     f"\n\nClick on button [{BTN_IMPORT}] to import new distributors from excel file"
                     f" or click on menu item [{BTN_USER_ADD}] to add new distributor"
                 )
-                messagebox.showwarning(title=_action, message=msg, parent=self.master)
+                messagebox.showwarning(title=_action, message=msg, parent=self)
                 return
 
             msg = (
@@ -362,7 +384,7 @@ class MainApp(tk.Frame):
             logging.exception(msg=_action)
             self.configure(cursor="")
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
 
     def treeview_select(self, event=None) -> None:
         """Show info when user select something in treeview"""
@@ -399,14 +421,14 @@ class MainApp(tk.Frame):
             _action = "Show Import dialog"
             logging.debug(msg=_action)
             _options = {"controller": self.controller}
-            dlg = ImportDialog(parent=self.master, title=BTN_IMPORT, **_options)
+            dlg = ImportDialog(parent=self, title=BTN_IMPORT, **_options)
             result = dlg.result
             if result:
                 self.treeview_refresh()
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_export(self):
         """Show Export dialog"""
@@ -424,7 +446,7 @@ class MainApp(tk.Frame):
                 messagebox.showwarning(
                     title=BTN_EXPORT,
                     message=msg,
-                    parent=self.master,
+                    parent=self,
                 )
                 return
 
@@ -441,12 +463,12 @@ class MainApp(tk.Frame):
                 "years": years,
                 "controller": self.controller,
             }
-            ExportDialog(parent=self.master, title=BTN_EXPORT, **_options)
+            ExportDialog(parent=self, title=BTN_EXPORT, **_options)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
             return
 
     def show_user_add(self):
@@ -455,7 +477,7 @@ class MainApp(tk.Frame):
             _action = "Show Distributor dialog"
             logging.debug(msg=_action)
             _args = {"image": "user-add", "model": Distributor}
-            dlg = DistributorDialog(parent=self.master, title=BTN_USER_ADD, **_args)
+            dlg = DistributorDialog(parent=self, title=BTN_USER_ADD, **_args)
             result = dlg.result
             if result:
                 _action = "Insert distributor"
@@ -474,13 +496,13 @@ class MainApp(tk.Frame):
                 id = record.get("id", 0)
                 msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
                 logging.info(msg=msg)
-                messagebox.showinfo(title=_action, message=msg, parent=self.master)
+                messagebox.showinfo(title=_action, message=msg, parent=self)
 
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
             return
 
     def show_company(self):
@@ -496,7 +518,7 @@ class MainApp(tk.Frame):
             _action = "Show Company dialog"
             logging.debug(msg=f"{_action}: {data=}")
             _args = {"image": "company", "data": data, "model": Company}
-            dlg = CompanyDialog(parent=self.master, title=BTN_COMPANY, **_args)
+            dlg = CompanyDialog(parent=self, title=BTN_COMPANY, **_args)
             result = dlg.result
             if result:
                 if result == data:
@@ -510,12 +532,12 @@ class MainApp(tk.Frame):
                     MSG_SUCCESS_TEMPLATE.format(_action) + f" for id={result.get("id")}"
                 )
                 logging.info(msg=msg)
-                messagebox.showinfo(title=_action, message=msg, parent=self.master)
+                messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus()
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
             return
 
     def show_user_edit(self):
@@ -533,7 +555,7 @@ class MainApp(tk.Frame):
                 msg = f"No distributor found on database for {id=}!"
                 logging.warning(msg=msg)
                 messagebox.showwarning(
-                    title=BTN_USER_EDIT, message=msg, parent=self.master
+                    title=BTN_USER_EDIT, message=msg, parent=self
                 )
                 return
 
@@ -544,7 +566,7 @@ class MainApp(tk.Frame):
                 "data": data,
                 "model": Distributor,
             }
-            dlg = DistributorDialog(parent=self.master, title=BTN_USER_EDIT, **_args)
+            dlg = DistributorDialog(parent=self, title=BTN_USER_EDIT, **_args)
             result = dlg.result
             if result:
                 if result == data:
@@ -567,40 +589,40 @@ class MainApp(tk.Frame):
                 item.refresh()
                 msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
                 logging.info(msg=msg)
-                messagebox.showinfo(title=_action, message=msg, parent=self.master)
+                messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_about(self) -> None:
         """Show About dialog"""
         try:
             _action = "Show About dialog"
             logging.debug(msg=_action)
-            uname = platform.uname()
-            title = f"About {package}"
-            txt = "-" * 20
-            msg = (
-                f"Name: {package}"
-                f"\nVersion: {version}"
-                f"\nAuthor: {author} <{email}>"
-                f"\n{txt}"
-                f"\nCopyright: {copyright}"
-                f"\nLicense: {license}"
-                f"\n{txt}"
-                f"\nDescription:\n{description}"
-                f"\n{txt}"
-                f"\nPython version: {platform.python_version()}"
-                f"\nOS: {uname.system} {uname.release} v.{uname.version}"
-                f"\nMachine: {uname.machine}"
-            )
-            messagebox.showinfo(title=title, message=msg, parent=self.master)
+        
+            uname = platform.uname()        
+            _msg = (
+                    f"\nAuthor: {AUTHOR} <{EMAIL}>"
+                    f"\nCopyright: {COPYRIGHT}"
+                    # f"\nDescription:\n{description}"
+                    f"\n{"-" * 20}"
+                    f"\nPython version: {platform.python_version()}"
+                    f"\nOS: {uname.system} {uname.release} v.{uname.version}"
+                    f"\nMachine: {uname.machine}"
+            )        
+            _args = {
+                    "image": "logo-small",
+                    "app_name": f"{PACKAGE} v{VERSION}",
+                    "description" : _msg,
+                    "license_file":os.path.join(EXE_PATH, "LICENSE.txt")
+                }
+            dlg = AboutDialog(parent=self, title=f"About {PACKAGE}", **_args)
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_settings(self):
         """Show Settings dialog"""
@@ -616,7 +638,7 @@ class MainApp(tk.Frame):
                 "data": data,
                 "model": Setting,
             }
-            dlg = SettingsDialog(parent=self.master, title=BTN_SETTINGS, **_args)
+            dlg = SettingsDialog(parent=self, title=BTN_SETTINGS, **_args)
             result = dlg.result
             if result:
                 if result == data:
@@ -629,12 +651,12 @@ class MainApp(tk.Frame):
                 self.settings = record
                 msg = MSG_SUCCESS_TEMPLATE.format(_action)
                 logging.info(msg=msg)
-                messagebox.showinfo(title=_action, message=msg, parent=self.master)
+                messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_user_delete(self):
         """Show user delete"""
@@ -662,31 +684,33 @@ class MainApp(tk.Frame):
 
             # Delete distributor
             _action = "Delete distributor"
-            self.master.config(cursor="watch")
+            self.config(cursor="watch")
             ids = [item.values[0] for item in _selected]
             iids = [item.iid for item in _selected]
             logging.debug(msg=f"{_action}: {ids=}")
 
             self.controller.delete_distributor_by_id(ids=ids)
             self.treeview.delete_rows(iids=iids)
-            self.master.config(cursor="")
+            self.config(cursor="")
             msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {ids}"
             logging.info(msg=msg)
-            messagebox.showinfo(title=_action, message=msg, parent=self.master)
+            messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
-            self.master.config(cursor="")
+            self.config(cursor="")
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
-            messagebox.showerror(title=_action, message=msg, parent=self.master)
+            messagebox.showerror(title=_action, message=msg, parent=self)
 
     def toggle_theme(self) -> None:
         if sv_ttk.get_theme() == "dark":
             sv_ttk.use_light_theme()
+            apply_theme_to_titlebar(self)
             msg = "Set light theme"
             logging.debug(msg=msg)
         elif sv_ttk.get_theme() == "light":
             sv_ttk.use_dark_theme()
+            apply_theme_to_titlebar(self)
             msg = "Set dark theme"
             logging.debug(msg=msg)
         else:
@@ -703,22 +727,36 @@ class MainApp(tk.Frame):
         logging.info(msg=f"{_action}: {data=}")
         return data
 
+def apply_theme_to_titlebar(window):
+    version = sys.getwindowsversion()
+
+    if version.major == 10 and version.build >= 22000:
+        # Set the title bar color to the background color on Windows 11 for better appearance
+        pywinstyles.change_header_color(window, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
+    elif version.major == 10:
+        pywinstyles.apply_style(window, "dark" if sv_ttk.get_theme() == "dark" else "normal")
+
+        # A hacky way to update the title bar's color on Windows 10 (it doesn't update instantly like on Windows 11)
+        window.wm_attributes("-alpha", 0.99)
+        window.wm_attributes("-alpha", 1)
 
 def main() -> None:
     """Main function"""
     logging.config.dictConfig(LOGGING_CONFIG)
     logging.info(msg="-" * 50)
     logging.info(msg="Start application")
-    root = tk.Tk()
-    sv_ttk.set_theme(theme=darkdetect.theme(), root=root)
-    root.title(f"{package} v.{version}")
-    root.geometry("{}x{}".format(1000, 800))
-    root.minsize(width=800, height=800)
-    root.iconbitmap(bitmap=os.path.join(RES_PATH, "main.ico"))
-    MainApp(master=root)
-    root.mainloop()
-    logging.info("End application")
+    if instance_check(PACKAGE):
+        application = NewCertificazioni770()
+        sv_ttk.set_theme(theme=darkdetect.theme(), root=application)
+        apply_theme_to_titlebar(window=application) 
+        application.mainloop()
+        logging.info("End application")
+    else:
+        logging.warning("Application is yet running")
+        sys.exit(0)
+    
     logging.info(msg="-" * 50)
+        
 
 
 if __name__ == "__main__":

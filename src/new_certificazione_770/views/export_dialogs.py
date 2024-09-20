@@ -17,11 +17,11 @@ from threading import Event
 from tkcalendar import DateEntry
 
 # Own modules
-from ..controllers.result_thread import ResultThread
-from ..controllers.controller import Controller
-from ..models.dat_model import DATFile
-from ..helpers import MSG_ERROR_TEMPLATE, MSG_WARNING_TEMPLATE, MSG_SUCCESS_TEMPLATE
-from ..views.dialog import BaseDialog
+from controllers.result_thread import ResultThread
+from controllers.controller import Controller
+from models.dat_model import DATFile
+from helpers import MSG_ERROR_TEMPLATE, MSG_WARNING_TEMPLATE, MSG_SUCCESS_TEMPLATE
+from views.dialog import BaseDialog
 
 # Constants
 VAR_EXPORT_FOLDER = "export_folder"
