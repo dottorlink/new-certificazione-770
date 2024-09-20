@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 <!-- insertion marker -->
 ## [0.1.0](https://github.com/dottorlink/new-certificazione-770/releases/tag/0.1.0) - 2024-09-20
 
-<small>[Compare with first commit](https://github.com/dottorlink/new-certificazione-770/compare/3fa608c17a1ed19242c35daa9b555006b90fe9bc...0.1.0)</small>
+<small>[Compare with first commit](https://github.com/dottorlink/new-certificazione-770/compare/6bd0c6d05b74fe38efdc1d4660934a0010284db1...0.1.0)</small>
 
 ### Build
 
