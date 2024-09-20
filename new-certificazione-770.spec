@@ -1,13 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_data_files
 
-datas = [('src\\new_certificazione_770\\assets\\*.png', 'assets'), ('src\\new_certificazione_770\\main.ico', '.')]
+datas = [('.\\src\\new_certificazione_770\\assets\\*.*', 'assets')]
 datas += collect_data_files('sv_ttk')
 
 
 a = Analysis(
-    ['src\\cli.py'],
-    pathex=[],
+    ['.\\src\\new_certificazione_770\main.py'],
+    pathex=['.\\src\\new_certificazione_770'],
     binaries=[],
     datas=datas,
     hiddenimports=['tkcalendar', 'babel.numbers', 'openpyxl'],
@@ -16,7 +16,7 @@ a = Analysis(
     runtime_hooks=[],
     excludes=[],
     noarchive=True,
-    optimize=0,
+    optimize=1,
 )
 pyz = PYZ(a.pure)
 
@@ -37,7 +37,7 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     version='version.rc',
-    icon=['src\\new_certificazione_770\\main.ico'],
+    icon=['.\\src\\new_certificazione_770\\assets\main.ico'],
 )
 coll = COLLECT(
     exe,

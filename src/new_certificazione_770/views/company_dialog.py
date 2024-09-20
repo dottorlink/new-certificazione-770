@@ -10,9 +10,9 @@ import tkinter.ttk as ttk
 # Libs
 
 # Own modules
-from ..models.base_models import Company
-from .dialog import BaseDialog
-from .widgets import ScrolledFrame
+from models.base_models import Company
+from views.dialog import BaseDialog
+from views.widgets import ScrolledFrame
 
 
 # Constants

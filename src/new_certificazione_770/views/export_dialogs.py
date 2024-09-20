@@ -5,6 +5,7 @@ Import Dialog
 
 # Built-in/Generic Imports
 import datetime
+import logging
 import os
 from queue import Queue
 import tkinter as tk
@@ -16,11 +17,11 @@ from threading import Event
 from tkcalendar import DateEntry
 
 # Own modules
-from ..controllers.result_thread import ResultThread
-from ..controllers.controller import Controller
-from ..models.dat_model import DATFile
-from ..helpers import MSG_ERROR_TEMPLATE, MSG_WARNING_TEMPLATE, MSG_SUCCESS_TEMPLATE
-from ..views.dialog import BaseDialog
+from controllers.result_thread import ResultThread
+from controllers.controller import Controller
+from models.dat_model import DATFile
+from helpers import MSG_ERROR_TEMPLATE, MSG_WARNING_TEMPLATE, MSG_SUCCESS_TEMPLATE
+from views.dialog import BaseDialog
 
 # Constants
 VAR_EXPORT_FOLDER = "export_folder"
@@ -206,16 +207,17 @@ class ExportDialog(BaseDialog):
         self.setvar(name=VAR_EXPORT_FOLDER, value="")
         self.setvar(name=VAR_MESSAGE, value="Choose a folder")
         self._queue = None
-        _folder = filedialog.askdirectory(
+        folder = filedialog.askdirectory(
             parent=self,
             mustexist=True,
             title="Chose a folder to export",
         )
-        if _folder:
+        if folder:
             _action = "Choose folder"
+            logging.info(msg=f"{_action}: {folder=}")
             _item = "folder"
             self.treeview.delete(*self.treeview.get_children())
-            self.setvar(name=VAR_EXPORT_FOLDER, value=_folder)
+            self.setvar(name=VAR_EXPORT_FOLDER, value=folder)
             self.setvar(name=VAR_MESSAGE, value="Ready to export")
             if self.treeview.exists(item=_item):
                 self.treeview.delete(_item)
@@ -228,7 +230,7 @@ class ExportDialog(BaseDialog):
                 open=True,
             )
             iid = self.treeview.insert(
-                parent=_item, index="end", text="Path", values=(_folder)
+                parent=_item, index="end", text="Path", values=(folder)
             )
             self.treeview.see(item=iid)
             self.treeview.selection_set(_item)
@@ -237,6 +239,7 @@ class ExportDialog(BaseDialog):
 
     def export(self) -> None:
         _action = "Check Controller"
+        logging.debug(msg=_action)
         if self._controller is None:
             _controller = self._args.get("controller", None)
             if _controller is None:
@@ -250,6 +253,7 @@ class ExportDialog(BaseDialog):
 
         _folder = self.getvar(name=VAR_EXPORT_FOLDER)
         if _folder is None:
+            logging.warning(msg="No folder choose")
             msg = MSG_WARNING_TEMPLATE.format(_action, "No folder choose")
             messagebox.showwarning(title=_action, message=msg, parent=self)
             return
@@ -282,6 +286,7 @@ class ExportDialog(BaseDialog):
             )
             self.treeview.see(item=iid)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Running")
+
             # Arguments
             export_year = self.getvar(name=VAR_EXPORT_YEAR)
             export_limit = self.getvar(name=VAR_EXPORT_LIMIT)
@@ -289,20 +294,26 @@ class ExportDialog(BaseDialog):
                 export_limit = None
             else:
                 export_limit = int(export_limit)
-            _data = self._controller.get_data_for_export_dat(
+            logging.debug(msg=f"{_action}: {export_year=}, {export_limit=}")
+
+            data = self._controller.get_data_for_export_dat(
                 year=export_year, limit=export_limit
             )
-            if _data is None:
+            if data is None:
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Warning")
                 self.treeview.item(item=_item, values="Warning")
-                msg = f"No data found for year={export_year}!"
+                msg = f"No data found for {export_year=}, {export_limit=}"
+                logging.warning(msg=f"{_action}: {msg}")
                 self.treeview.item(item=iid, values=(msg))
                 msg = MSG_WARNING_TEMPLATE.format(_action, msg)
                 messagebox.showwarning(title=_action, message=msg, parent=self)
                 return
-            msg = f"Loaded {len(_data):,d} records"
-            self.treeview.item(item=iid, values=(msg))
+
+            msg = MSG_SUCCESS_TEMPLATE.format(_action)
+            self.treeview.item(item=iid, values=(f"{len(data):,d}"))
+            logging.info(msg=f"{msg}: records={len(data):,d}")
         except Exception as e:
+            logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
@@ -315,19 +326,22 @@ class ExportDialog(BaseDialog):
         # Add data to queue
         try:
             _action = "Add data to queue"
+            logging.debug(msg=_action)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Running")
             iid = self.treeview.insert(
                 parent=_item, index="end", text=_action, values=("Running")
             )
             self.treeview.see(item=iid)
-            _total = len(_data)
-            self._queue = Queue(maxsize=_total)
-            for item in _data:
+            total = len(data)
+            self._queue = Queue(maxsize=total)
+            for item in data:
                 self._queue.put(item=item)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Success")
-            msg = f"Success: Inserted {_total:,d} records"
-            self.treeview.item(item=iid, values=(msg))
+            msg = MSG_SUCCESS_TEMPLATE.format(_action)
+            self.treeview.item(item=iid, values=(f"{total:,d}"))
+            logging.info(msg=f"{msg}: records={total:,d}")
         except Exception as e:
+            logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
@@ -339,10 +353,11 @@ class ExportDialog(BaseDialog):
 
         # Export
         _action = BTN_EXPORT
+        logging.debug(msg=_action)
         self.setvar(name=VAR_MESSAGE, value=f"{_action}... Running")
 
         self.progress_bar.stop()
-        self.progress_bar.config(mode="determinate", value=0, maximum=_total)
+        self.progress_bar.config(mode="determinate", value=0, maximum=total)
 
         export_folder = self.getvar(name=VAR_EXPORT_FOLDER)
         export_type = self.getvar(name=VAR_EXPORT_TYPE)
@@ -350,6 +365,8 @@ class ExportDialog(BaseDialog):
         export_code_ente_prev = self._args.get("code_ente_prev", "")
         export_denom_ente_prev = self._args.get("denom_ente_prev", "")
 
+        _action = f"Start thread {THREAD_EXPORT_DAT}"
+        logging.debug(msg=_action)
         self._event = Event()
         _thread = ResultThread(
             name=THREAD_EXPORT_DAT,
@@ -381,35 +398,38 @@ class ExportDialog(BaseDialog):
             return
 
         _action = thread.name
+        logging.debug(msg=f"Thread {_action} terminated")
         self._event = None
         if thread.name == THREAD_EXPORT_GUFANA:
             # TODO
-            pass
             return
 
         if thread.name == THREAD_EXPORT_DAT:
             _item = "export"
-            _res_code, _res_msg, _res_data, _res_file_name = thread.result
-            if _res_code < 0:
+            res_code, res_msg, res_data, res_file_name = thread.result
+            if res_code < 0:
+                logging.error(msg=f"{_action}: {res_code=}, {res_msg=}")
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error!")
                 self.treeview.item(item=_item, values=("Error"))
-                msg = MSG_ERROR_TEMPLATE.format(_action, _res_msg)
+                msg = MSG_ERROR_TEMPLATE.format(_action, res_msg)
                 messagebox.showerror(title=_action, message=msg, parent=self)
                 self.result = None
                 return
-            elif _res_code > 0:
+            elif res_code > 0:
+                logging.warning(msg=f"{_action}: {res_code=}, {res_msg=}")
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Warning!")
                 self.treeview.item(item=_item, values=("Warning"))
-                msg = MSG_WARNING_TEMPLATE.format(_action, _res_msg)
+                msg = MSG_WARNING_TEMPLATE.format(_action, res_msg)
             else:
-                self._data_frame = _res_data
+                self._data_frame = res_data
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Success!")
                 self.treeview.item(item=_item, values=("Success"))
                 msg = MSG_SUCCESS_TEMPLATE.format(_action)
+                logging.info(msg=msg)
 
-            if _res_data:
+            if res_data:
                 _total = self._queue.maxsize
-                msg += REPORT_TEMPLATE.format(_res_data, _total)
+                msg += REPORT_TEMPLATE.format(res_data, _total)
                 iid = self.treeview.insert(
                     parent=_item,
                     index="end",
@@ -420,12 +440,13 @@ class ExportDialog(BaseDialog):
                     parent=_item,
                     index="end",
                     text="Exported",
-                    values=(f"{_res_data:,d}"),
+                    values=(f"{res_data:,d}"),
                 )
                 self.treeview.see(item=iid)
                 self.treeview.selection_set(_item)
-            if _res_file_name:
-                f_path, f_name = os.path.split(_res_file_name)
+            if res_file_name:
+                logging.info(msg=f"{_action}: {res_file_name=}")
+                f_path, f_name = os.path.split(res_file_name)
                 iid = self.treeview.insert(
                     parent=_item,
                     index="end",
@@ -443,7 +464,7 @@ class ExportDialog(BaseDialog):
                 msg += "\n\nDo you want to open report file?"
                 ask = messagebox.askyesno(title=_action, message=msg, parent=self)
                 if ask:
-                    os.startfile(filepath=f"{_res_file_name}")
+                    os.startfile(filepath=f"{res_file_name}")
             else:
                 messagebox.showinfo(title=_action, message=msg, parent=self)
             self.result = "Ok"
@@ -478,6 +499,8 @@ def thread_export_data(
     """
     _dat_csv = None
     _records = 0
+    _exit = 0
+    _msg = "OK"
     try:
         # Open CSV file
         _action = "Open CSV DAT File"
@@ -491,12 +514,10 @@ def thread_export_data(
 
         while not queue.empty():
             if event.is_set():
-                return (
-                    1,
-                    "Thread stopped by user",
-                    _records,
-                    (_dat_csv.file_name if _dat_csv else None),
-                )
+                _msg = "Thread stopped by user"
+                _exit = 1
+                break
+
             _action = "Read item from queue"
             item = queue.get()
 
@@ -505,9 +526,11 @@ def thread_export_data(
             _records += 1
             queue.task_done()
 
-        return (0, "Ok", _records, (_dat_csv.file_name if _dat_csv else None))
+        return (_exit, _msg, _records, (_dat_csv.file_name if _dat_csv else None))
     except ValueError as e:
-        return (1, str(e), _records, (_dat_csv.file_name if _dat_csv else None))
+        _exit = 1
+        return (_exit, str(e), _records, (_dat_csv.file_name if _dat_csv else None))
     except Exception as e:
-        msg = f"{_action}: {str(e)}"
-        return (-1, msg, None, (_dat_csv.file_name if _dat_csv else None))
+        _exit = -1
+        _msg = f"{_action}: {str(e)}"
+        return (_exit, _msg, _records, (_dat_csv.file_name if _dat_csv else None))

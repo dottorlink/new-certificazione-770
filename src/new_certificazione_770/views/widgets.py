@@ -2122,7 +2122,7 @@ class Tableview(ttk.Frame):
         if not self._paginated:
             ttk.Button(
                 frame,
-                text="⎌",
+                text="⟲",
                 command=self.reset_table,
                 style="symbol.Link.TButton",
             ).pack(side=tk.LEFT)
@@ -2137,7 +2137,7 @@ class Tableview(ttk.Frame):
 
         ttk.Button(
             pageframe,
-            text="⎌",
+            text="⟲",
             command=self.reset_table,
             style="symbol.Link.TButton",
         ).pack(side=tk.RIGHT)
@@ -2288,7 +2288,7 @@ class Tableview(ttk.Frame):
 #                 "command": self.sort_column_descending,
 #             },
 #             "clearfilter": {
-#                 "label": f"""{"⎌"} {"Clear filters"}""",
+#                 "label": f"""{"⟲"} {"Clear filters"}""",
 #                 "command": self.master.reset_row_filters,
 #             },
 #             "filterbyvalue": {
@@ -2544,7 +2544,7 @@ class Tableview(ttk.Frame):
 #                 "command": self.align_heading_center,
 #             },
 #             "resettable": {
-#                 "label": f"""{MessageCatalog.translate("⎌")}  {MessageCatalog.translate("Reset table")}""",
+#                 "label": f"""{MessageCatalog.translate("⟲")}  {MessageCatalog.translate("Reset table")}""",
 #                 "command": self.master.reset_table,
 #             },
 #             "deletecolumn": {
