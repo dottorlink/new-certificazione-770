@@ -26,16 +26,22 @@ requires = ["hatchling", "hatch-pyinstaller",]
 build-backend = "hatchling.build"
 
 
-[tool.cxfreeze]
-executables = [
-    {script = "./src/new_certificazione_770/main.py.py", base = "gui"}
-]
-
-[tool.cxfreeze.build_exe]
-excludes = ["tkinter", "unittest"]
-zip_include_packages = ["tkcalendar", "babel.numbers", "openpyxl"]
-path = "./src/new_certificazione_770/"
-optimize = 2
+[tool.git-changelog]
+bump = "minor"
+convention = "conventional"
+in-place = false
+# figilter-commits = "0.0.1.."
+marker-line = "<!-- insertion marker -->"
+output = "CHANGELOG.md"
+parse-refs = false
+parse-trailers = false
+provider = "github"
+repository = "."
+sections = "build,deps,feat,fix,refactor"
+template = "keepachangelog"
+version-regex = "^## \\\\[(?P<version>v?[^\\\\]]+)"
+versioning = "semver"
+zerover = true
 
 [tool.pdm]
 distribution = true
