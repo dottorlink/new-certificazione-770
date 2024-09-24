@@ -9,21 +9,21 @@ Main module
 # Built-in/Generic Imports
 
 # Libs
-import os
-import sys
-import platform
-import tkinter as tk
-from tkinter import messagebox
-import tkinter.ttk as ttk
 import logging
 import logging.config
+import os
+import platform
+import sys
+import tkinter as tk
+import tkinter.ttk as ttk
+from tkinter import messagebox
 
-# Modules
-import sv_ttk
+import config
 import darkdetect
 import pywinstyles
 
-from config import * 
+# Modules
+import sv_ttk
 from controllers.controller import Controller
 from helpers import (
     DEFAULT_COMPANY,
@@ -33,15 +33,15 @@ from helpers import (
     MSG_ERROR_TEMPLATE,
     MSG_SUCCESS_TEMPLATE,
     executable_path,
+    instance_check,
     resource_path,
-    instance_check
 )
 from models.base_models import Company, Distributor, Setting
+from views.about import AboutDialog
 from views.company_dialog import CompanyDialog
 from views.distributor_dialog import DistributorDialog
 from views.export_dialogs import ExportDialog
 from views.import_dialogs import ImportDialog
-from views.about import AboutDialog
 from views.settings_dialog import SettingsDialog
 from views.widgets import Tableview
 
@@ -53,7 +53,7 @@ EXE_PATH = executable_path()
 RES_PATH = resource_path()
 
 # Button Constants
-BTN_ABOUT = f"About {PACKAGE}"
+BTN_ABOUT = f"About {config.PACKAGE}"
 BTN_COMPANY = "Company"
 BTN_EXIT = "Exit"
 BTN_EXPORT = "Export"
@@ -74,22 +74,23 @@ VAR_STATUS_BAR = "status_bar"
 VAR_SEARCH = "search_text"
 
 
-class NewCertificazioni770(tk.Tk):
+class MainWindow(ttk.Frame):
     """Main Tk Window
 
     Args:
         tk (_type_): _description_
     """
-    def __init__(self) -> None:
-        super().__init__()
-        self.withdraw()
-        self.title(f"{PACKAGE} v.{VERSION}")
-        self.geometry("{}x{}".format(1000, 800))
-        self.minsize(width=800, height=800)
-        self.iconbitmap(bitmap=os.path.join(RES_PATH, "assets", "main.ico"))
-        
-        self.body_frm = ttk.Frame(master=self)
-        self.body_frm.pack(fill=tk.BOTH, expand=tk.YES, side=tk.TOP)
+
+    def __init__(self, parent, *args, **kwargs) -> None:
+        super().__init__(master=parent, *args, **kwargs)
+        self.parent = parent
+        self.pack(fill=tk.BOTH, expand=tk.YES)
+        self.parent.withdraw()
+        self.version = config.VERSION
+        self.parent.title(f"{config.PACKAGE} v.{config.VERSION}")
+        self.parent.geometry("{}x{}".format(1000, 800))
+        self.parent.minsize(width=800, height=800)
+        self.parent.iconbitmap(bitmap=os.path.join(RES_PATH, "assets", "main.ico"))
 
         self.controller: Controller = None
         self.settings: dict = None
@@ -101,7 +102,7 @@ class NewCertificazioni770(tk.Tk):
 
             _action = "Draw application"
             logging.debug(msg=_action)
-            self.create_menu_bar()
+            self.create_menu_bar(master=self.parent)
             self.create_status_bar()
             self.create_button_bar()
             self.create_left_panel()
@@ -113,9 +114,9 @@ class NewCertificazioni770(tk.Tk):
             messagebox.showerror(title=_action, message=msg, parent=self)
             self.on_close()
             return
-        
-        self.protocol("WM_DELETE_WINDOW", func=self.on_close)
-        self.deiconify()
+
+        self.parent.protocol("WM_DELETE_WINDOW", func=self.on_close)
+        self.parent.deiconify()
         self.after(ms=200, func=self._initialize)
 
     def _load_images(self) -> None:
@@ -145,7 +146,7 @@ class NewCertificazioni770(tk.Tk):
     def _initialize(self) -> None:
         try:
             if self.controller is None:
-                db_path = os.path.join(EXE_PATH, f"{PACKAGE}.db")
+                db_path = os.path.join(EXE_PATH, f"{config.PACKAGE}.db")
                 _action = f"Open/create database: {db_path=}"
                 logging.debug(msg=_action)
                 self.controller = Controller(db_path=db_path, echo=False)
@@ -162,7 +163,7 @@ class NewCertificazioni770(tk.Tk):
             messagebox.showerror(title=_action, message=msg, parent=self)
             self.on_close()
 
-    def create_menu_bar(self) -> None:
+    def create_menu_bar(self, master) -> None:
         menu_items = {
             "File": [
                 BTN_IMPORT,
@@ -191,8 +192,8 @@ class NewCertificazioni770(tk.Tk):
                 BTN_ABOUT,
             ],
         }
-        self.option_add(pattern="*tearOff", value=False)
-        menu_bar = tk.Menu(master=self)
+        master.option_add(pattern="*tearOff", value=False)
+        menu_bar = tk.Menu(master=master)
         for key, val in menu_items.items():
             mnu = tk.Menu(menu_bar, tearoff=0)
             for item in val:
@@ -203,10 +204,10 @@ class NewCertificazioni770(tk.Tk):
                     label=item, command=lambda a=item: self.on_action(action=a)
                 )
             menu_bar.add_cascade(label=key, menu=mnu)
-        self.configure(menu=menu_bar)
+        master.configure(menu=menu_bar)
 
     def create_left_panel(self):
-        left_panel_frm = ttk.Frame(master=self.body_frm, style="Card.TFrame")
+        left_panel_frm = ttk.Frame(master=self, style="Card.TFrame")
         left_panel_frm.pack(side=tk.LEFT, fill=tk.Y)
 
         lbl = ttk.Label(master=left_panel_frm, image="logo-small", anchor="center")
@@ -245,14 +246,14 @@ class NewCertificazioni770(tk.Tk):
                 width=8,
             )
             btn.pack(side=_side, ipadx=5, ipady=5, padx=0, pady=1)
-        sb = ttk.Separator(master=self.body_frm, orient=tk.VERTICAL)
+        sb = ttk.Separator(master=self, orient=tk.VERTICAL)
         sb.pack(side=tk.LEFT, fill=tk.Y)
 
     def create_button_bar(self) -> None:
         pass
 
     def create_right_panel(self):
-        right_panel_frm = ttk.Frame(self.body_frm, padding=5, border=1)
+        right_panel_frm = ttk.Frame(self, padding=5, border=1)
         right_panel_frm.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.YES)
 
         # Treeview
@@ -335,7 +336,7 @@ class NewCertificazioni770(tk.Tk):
 
     def on_close(self):
         # self.destroy()
-        self.quit()
+        self.parent.quit()
 
     # Treeview action
     def treeview_refresh(self) -> None:
@@ -554,9 +555,7 @@ class NewCertificazioni770(tk.Tk):
             if data is None:
                 msg = f"No distributor found on database for {id=}!"
                 logging.warning(msg=msg)
-                messagebox.showwarning(
-                    title=BTN_USER_EDIT, message=msg, parent=self
-                )
+                messagebox.showwarning(title=BTN_USER_EDIT, message=msg, parent=self)
                 return
 
             _action = "Show Distributor dialog"
@@ -601,24 +600,24 @@ class NewCertificazioni770(tk.Tk):
         try:
             _action = "Show About dialog"
             logging.debug(msg=_action)
-        
-            uname = platform.uname()        
+
+            uname = platform.uname()
             _msg = (
-                    f"\nAuthor: {AUTHOR} <{EMAIL}>"
-                    f"\nCopyright: {COPYRIGHT}"
-                    # f"\nDescription:\n{description}"
-                    f"\n{"-" * 20}"
-                    f"\nPython version: {platform.python_version()}"
-                    f"\nOS: {uname.system} {uname.release} v.{uname.version}"
-                    f"\nMachine: {uname.machine}"
-            )        
+                f"\nAuthor: {config.AUTHOR} <{config.EMAIL}>"
+                f"\nCopyright: {config.COPYRIGHT}"
+                # f"\nDescription:\n{description}"
+                f"\n{"-" * 20}"
+                f"\nPython version: {platform.python_version()}"
+                f"\nOS: {uname.system} {uname.release} v.{uname.version}"
+                f"\nMachine: {uname.machine}"
+            )
             _args = {
-                    "image": "logo-small",
-                    "app_name": f"{PACKAGE} v{VERSION}",
-                    "description" : _msg,
-                    "license_file":os.path.join(EXE_PATH, "LICENSE.txt")
-                }
-            dlg = AboutDialog(parent=self, title=f"About {PACKAGE}", **_args)
+                "image": "logo-small",
+                "app_name": f"{config.PACKAGE} v{config.VERSION}",
+                "description": _msg,
+                "license_file": os.path.join(EXE_PATH, "LICENSE.txt"),
+            }
+            AboutDialog(parent=self, title=f"About {config.PACKAGE}", **_args)
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
@@ -727,36 +726,42 @@ class NewCertificazioni770(tk.Tk):
         logging.info(msg=f"{_action}: {data=}")
         return data
 
+
 def apply_theme_to_titlebar(window):
     version = sys.getwindowsversion()
 
     if version.major == 10 and version.build >= 22000:
         # Set the title bar color to the background color on Windows 11 for better appearance
-        pywinstyles.change_header_color(window, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa")
+        pywinstyles.change_header_color(
+            window, "#1c1c1c" if sv_ttk.get_theme() == "dark" else "#fafafa"
+        )
     elif version.major == 10:
-        pywinstyles.apply_style(window, "dark" if sv_ttk.get_theme() == "dark" else "normal")
+        pywinstyles.apply_style(
+            window, "dark" if sv_ttk.get_theme() == "dark" else "normal"
+        )
 
         # A hacky way to update the title bar's color on Windows 10 (it doesn't update instantly like on Windows 11)
         window.wm_attributes("-alpha", 0.99)
         window.wm_attributes("-alpha", 1)
 
+
 def main() -> None:
     """Main function"""
-    logging.config.dictConfig(LOGGING_CONFIG)
+    logging.config.dictConfig(config.LOGGING_CONFIG)
     logging.info(msg="-" * 50)
     logging.info(msg="Start application")
-    if instance_check(PACKAGE):
-        application = NewCertificazioni770()
-        sv_ttk.set_theme(theme=darkdetect.theme(), root=application)
-        apply_theme_to_titlebar(window=application) 
-        application.mainloop()
+    if instance_check(config.PACKAGE):
+        root = tk.Tk()
+        MainWindow(parent=root)
+        sv_ttk.set_theme(theme=darkdetect.theme(), root=root)
+        # apply_theme_to_titlebar(window=application)
+        root.mainloop()
         logging.info("End application")
     else:
         logging.warning("Application is yet running")
         sys.exit(0)
-    
+
     logging.info(msg="-" * 50)
-        
 
 
 if __name__ == "__main__":

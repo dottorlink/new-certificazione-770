@@ -32,7 +32,7 @@ class AboutDialog(BaseDialog):
         lbl1 = ttk.Label(frm, image=image, anchor=tk.W)
         lbl1.pack(side=tk.LEFT, padx=(15, 5), pady=5)
         app_name = self._args.get("app_name", "Application")
-        lbl2 = ttk.Label(frm, text=app_name, font=("TkDefaultFont", 12, "bold"))
+        lbl2 = ttk.Label(frm, text=app_name, font=("TkCaptionFont", 10, "bold"))
         lbl2.pack(side=tk.LEFT, padx=(5, 15), pady=5)
         frm.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
 

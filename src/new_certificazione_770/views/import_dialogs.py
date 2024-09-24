@@ -4,16 +4,15 @@ Import Dialog
 """
 
 # Built-in/Generic Imports
+import csv
 import logging
 import os
-from typing import Any
-import csv
-from queue import Queue
 import tempfile
 import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog, messagebox
+from queue import Queue
 from threading import Event
+from tkinter import filedialog, messagebox, ttk
+from typing import Any
 
 # Libs
 import pandas
@@ -21,8 +20,8 @@ import pandas
 # Own modules
 from controllers.controller import Controller
 from controllers.result_thread import ResultThread
-from models.base_models import Distributor, Invoice
 from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
+from models.base_models import Distributor, Invoice
 from views.dialog import BaseDialog
 
 # Constants
@@ -93,76 +92,76 @@ class ImportDialog(BaseDialog):
         super().__init__(parent=parent, title=title, **kwargs)
 
     def body(self, master):
-        body_frm = ttk.Frame(master=master, padding=10)
-        body_frm.pack(fill=tk.BOTH, expand=1)
+        body_frm = ttk.Frame(master=master, padding=10, width=200)
+        body_frm.pack(fill=tk.BOTH, expand=tk.Y)
 
         # Header
         self.headerbox(master=body_frm, default="import")
 
         # Subtitle
-        _ind = 1
-        _txt = "Complete the form to begin your import process"
-        lbl = ttk.Label(
-            master=body_frm, text=_txt, font=("TkDefaultFont", 9, "bold"), padding=10
+        lbl_frm = ttk.LabelFrame(
+            master=body_frm,
+            text="Complete the form to begin your import process",
+            padding=5,
         )
-        lbl.pack(side=tk.TOP, expand=1, fill=tk.X, padx=10, pady=10)
+        lbl_frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
 
         # File Path
-        frm = ttk.LabelFrame(
-            master=body_frm, padding=5, text=f"{_ind}. Import file path:"
-        )
-        frm.pack(
-            side=tk.TOP,
-            fill=tk.X,
-        )
-        var = tk.StringVar(master=self, name=VAR_FILE_PATH, value="")
-        ent = ttk.Entry(master=frm, textvariable=var, state="readonly")
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=5)
+        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
+        lbl = ttk.Label(master=frm, padding=5, text="Import file path:")
+        lbl.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
+        self.setvar(VAR_FILE_PATH, "")
+        ent = ttk.Entry(master=frm, textvariable=VAR_FILE_PATH, state="readonly")
         ent.bind(sequence="<Return>", func=self.browse)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
         self.browse_btn = ttk.Button(master=frm, text="Browse", command=self.browse)
         self.browse_btn.pack(side=tk.RIGHT, padx=5)
 
-        # Import type and file frame
-        _ind += 1
-        frm = ttk.LabelFrame(master=body_frm, padding=5, text=f"{_ind}. Import type:")
-        frm.pack(side=tk.TOP, fill=tk.X)
+        # Import type
+        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
+        lbl = ttk.Label(master=frm, padding=5, text="Import type:", width=20)
+        lbl.pack(side=tk.LEFT)
         options = [Distributor.__name__, Invoice.__name__]
-        self.import_type_opt = ttk.Combobox(
+        self.setvar(name=VAR_IMPORT_TYPE, value=options[1])
+        ent = ttk.Combobox(
             master=frm,
             textvariable=VAR_IMPORT_TYPE,
             state="readonly",
             values=options,
         )
-        self.setvar(name=VAR_IMPORT_TYPE, value=options[1])
-        self.import_type_opt.bind(sequence="<<ComboboxSelected>>", func=self.select_import_type)
-        self.import_type_opt.pack(side=tk.TOP, fill=tk.X, padx=5)
+        ent.bind(sequence="<<ComboboxSelected>>", func=self.select_import_type)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
+        self.import_type_opt = ent
 
+        # check delete table
+        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
+        # lbl = ttk.Label(
+        #     master=frm, padding=5, text="Delete table before import", width=20
+        # )
+        # lbl.pack(side=tk.LEFT)
+        self.setvar(name=VAR_CHECK_DELETE, value=True)
         ent = ttk.Checkbutton(
             master=frm,
             variable=VAR_CHECK_DELETE,
-            padding=10,
             text="Delete table before import",
+            padding=10,
             style="Switch.TCheckbutton",
             onvalue=True,
             offvalue=False,
         )
-        self.setvar(name=VAR_CHECK_DELETE, value=True)
-        ent.pack(side=tk.TOP, fill=tk.X, padx=5)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
 
         # Message frame
-        _ind += 1
-        frm = ttk.LabelFrame(master=body_frm, padding=5, text=f"{_ind}. Action:")
-        frm.pack(side=tk.TOP, fill=tk.X)
-
-        row = ttk.Frame(master=frm)
-        row.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
-        lbl = ttk.Label(
-            master=row, textvariable=VAR_MESSAGE, text="Choose excel file", width=50
-        )
+        frm = ttk.Frame(master=body_frm, padding=5)
+        frm.pack(side=tk.TOP, fill=tk.X, expand=tk.Y)
         self.setvar(name=VAR_MESSAGE, value="Choose excel file")
-        lbl.pack(side=tk.LEFT, fill=tk.X, padx=5)
+        lbl = ttk.Label(master=frm, textvariable=VAR_MESSAGE)
+        lbl.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
         self.action_btn = ttk.Button(
-            master=row,
+            master=frm,
             text=BTN_CONTROL,
             command=self.control_excel_file,
             state=tk.DISABLED,
@@ -170,18 +169,18 @@ class ImportDialog(BaseDialog):
         )
         self.action_btn.pack(side=tk.RIGHT, padx=5)
 
-        self.progress_bar = ttk.Progressbar(master=frm, mode="indeterminate")
-        self.progress_bar.pack(side=tk.TOP, fill=tk.X, pady=5)
+        self.progress_bar = ttk.Progressbar(master=body_frm, mode="indeterminate")
+        self.progress_bar.pack(side=tk.TOP, fill=tk.X, expand=tk.Y, pady=5)
 
         self.treeview = ttk.Treeview(
-            master=frm,
+            master=body_frm,
             show="tree",
             height=5,
             columns=["Message"],
         )
         self.treeview.column(column="#0", width=150, anchor="w")
-        self.treeview.column(column="Message", width=200, anchor="w", stretch=True)
-        self.treeview.pack(side=tk.TOP, fill=tk.X, pady=5)
+        self.treeview.column(column="Message", width=250, anchor="w", stretch=True)
+        self.treeview.pack(side=tk.TOP, fill=tk.X, expand=tk.Y, pady=5)
 
         self.resizable(0, 0)
 
@@ -189,7 +188,7 @@ class ImportDialog(BaseDialog):
         """Button box"""
         box = ttk.Frame(master=self)
 
-        w = ttk.Button(box, text="Cancel", width=10, command=self.cancel)
+        w = ttk.Button(box, text="Cancel", width=20, command=self.cancel)
         w.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.bind(sequence="<Escape>", func=self.cancel)
@@ -262,8 +261,7 @@ class ImportDialog(BaseDialog):
             self.setvar(name=VAR_MESSAGE, value="Choose a file")
 
     def control_excel_file(self) -> None:
-        """Control excel file action
-        """
+        """Control excel file action"""
         _excel_file = self.getvar(name=VAR_FILE_PATH)
         _action = THREAD_CONTROL_EXCEL
         logging.debug(msg=_action)
@@ -279,7 +277,6 @@ class ImportDialog(BaseDialog):
         self.progress_bar.start()
         self.action_btn.config(state=tk.DISABLED)
         self.import_type_opt.config(state=tk.DISABLED)
-        
 
         _item = "control"
         self.setvar(name=VAR_MESSAGE, value=f"{_action}... Running")
@@ -303,8 +300,7 @@ class ImportDialog(BaseDialog):
         self.after(ms=200, func=lambda t=_thread: self.monitor_thread(thread=t))
 
     def import_excel_file_data(self):
-        """Import excel file data process
-        """
+        """Import excel file data process"""
         if self._data_frame is None:
             return
 
@@ -439,10 +435,9 @@ class ImportDialog(BaseDialog):
             self.setvar(name=VAR_CHECK_DELETE, value=True)
         # Change action button
         self.action_btn.config(
-                text=BTN_CONTROL,
-                command=self.control_excel_file,
-            )
-        
+            text=BTN_CONTROL,
+            command=self.control_excel_file,
+        )
 
     def monitor_thread(self, thread: ResultThread) -> None:
         if thread.is_alive():
@@ -465,7 +460,7 @@ class ImportDialog(BaseDialog):
         self._event = None
         self.action_btn.config(state=tk.NORMAL)
         self.browse_btn.config(state=tk.NORMAL)
-        self.import_type_opt.config(state=tk.NORMAL)        
+        self.import_type_opt.config(state=tk.NORMAL)
         self.action_btn.focus_set()
         if thread.name == THREAD_CONTROL_EXCEL:
             _item = "control"
@@ -620,7 +615,9 @@ def _thread_control_excel_file(excel_file: str, model: str, event: Event):
             if _step == 0:
                 _action = "Open Excel file"
                 with pandas.ExcelFile(excel_file) as f_xls:
-                    _data_frame = pandas.read_excel(io=f_xls, dtype=data_type)
+                    _data_frame = pandas.read_excel(
+                        io=f_xls, dtype=data_type, na_filter=False
+                    )
                 _step += 1
                 continue
             elif _step == 1:
@@ -645,7 +642,7 @@ def _thread_control_excel_file(excel_file: str, model: str, event: Event):
                 _data_frame = _data_frame.replace(to_replace={pandas.NaT: None})
                 _data_frame = _data_frame.map(
                     func=lambda x: x.upper()
-                    if pandas.notnull(x) and type(x) == str
+                    if pandas.notnull(x) and type(x) is str
                     else x
                 )
                 if model == Distributor.__name__:

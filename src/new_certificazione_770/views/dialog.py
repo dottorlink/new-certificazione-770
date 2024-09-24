@@ -7,8 +7,8 @@ _Description_
 # Libs
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter.simpledialog import Dialog
 from tkinter import messagebox
+from tkinter.simpledialog import Dialog
 
 # Modules
 from tkcalendar import DateEntry
@@ -25,16 +25,16 @@ class BaseDialog(Dialog):
         super().__init__(parent=parent, title=title)
 
     def headerbox(self, master, default: str) -> None:
-        row_frm = ttk.Frame(master=master, padding=10)
-        row_frm.pack(side=tk.TOP, fill=tk.X, expand=1)
+        frm = ttk.Frame(master=master, padding=10)
+        frm.pack(side=tk.TOP, fill=tk.X, expand=1)
         lbl = tk.Label(
-            master=row_frm,
+            master=frm,
             text=self._title,
-            font=("TkDefaultFont", 10, "bold"),
+            font=("TkCaptionFont", 14, "bold"),
         )
         lbl.pack(side=tk.LEFT, expand=1, fill=tk.X)
         lbl = tk.Label(
-            master=row_frm,
+            master=frm,
             text="",
             image=self._args.get("image", default),
             compound=tk.LEFT,
