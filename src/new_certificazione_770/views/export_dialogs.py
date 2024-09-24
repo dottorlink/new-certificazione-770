@@ -66,15 +66,15 @@ class ExportDialog(BaseDialog):
         self.headerbox(master=body_frm, default="export")
 
         # Subtitle
-        lbl_frm = ttk.LabelFrame(
+        self.label_frm = ttk.LabelFrame(
             master=body_frm,
             text="Complete the form to begin your export process",
             padding=5,
         )
-        lbl_frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        self.label_frm.pack(side=tk.TOP, expand=1, fill=tk.X)
 
         # Export folder
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=1, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export folder:")
         lbl.pack(side=tk.TOP, fill=tk.X)
@@ -87,7 +87,7 @@ class ExportDialog(BaseDialog):
         btn.focus_set()
 
         # Export type
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=1, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export type:", width=20)
         lbl.pack(side=tk.LEFT)
@@ -99,7 +99,7 @@ class ExportDialog(BaseDialog):
         ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
         # Export year
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=1, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export year:", width=20)
         lbl.pack(side=tk.LEFT)
@@ -111,7 +111,7 @@ class ExportDialog(BaseDialog):
         ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
         # Export signature date
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=1, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export signature date:", width=20)
         lbl.pack(side=tk.LEFT)
@@ -121,22 +121,20 @@ class ExportDialog(BaseDialog):
             selectmode="day",
             date_pattern="yyyy-MM-dd",
             locale="it_IT",
+            state="readonly",
             textvariable=VAR_SIGNATURE_DATE,
         )
         ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
         # Export record limit
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=1, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export record limit:", width=20)
         lbl.pack(side=tk.LEFT)
         options = ["All", "1000", "100", "10", "5"]
         self.setvar(name=VAR_EXPORT_LIMIT, value=options[0])
         ent = ttk.Combobox(
-            master=frm,
-            state="readonly",
-            values=options,
-            textvariable=VAR_EXPORT_LIMIT,
+            master=frm, values=options, state="readonly", textvariable=VAR_EXPORT_LIMIT
         )
         ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
@@ -252,6 +250,7 @@ class ExportDialog(BaseDialog):
 
         self.progress_bar.config(mode="indeterminate", value=0)
         self.progress_bar.start()
+        self.set_frame_state(self.label_frm, tk.DISABLED)
         self.action_btn.config(state=tk.DISABLED)
 
         _action = BTN_EXPORT
@@ -308,6 +307,7 @@ class ExportDialog(BaseDialog):
             logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
+            self.set_frame_state(self.label_frm, tk.NORMAL)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
             self.treeview.item(item=_item, values=("Error"))
             self.treeview.item(item=iid, values=(str(e)))
@@ -336,6 +336,7 @@ class ExportDialog(BaseDialog):
             logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
+            self.set_frame_state(self.label_frm, tk.NORMAL)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
             self.treeview.item(item=_item, values="Error")
             self.treeview.item(item=iid, values=(str(e)))
@@ -392,6 +393,9 @@ class ExportDialog(BaseDialog):
         _action = thread.name
         logging.debug(msg=f"Thread {_action} terminated")
         self._event = None
+
+        self.set_frame_state(self.label_frm, tk.NORMAL)
+        self.action_btn.config(state=tk.NORMAL)
         if thread.name == THREAD_EXPORT_GUFANA:
             # TODO
             return

@@ -99,15 +99,15 @@ class ImportDialog(BaseDialog):
         self.headerbox(master=body_frm, default="import")
 
         # Subtitle
-        lbl_frm = ttk.LabelFrame(
+        self.label_frm = ttk.LabelFrame(
             master=body_frm,
             text="Complete the form to begin your import process",
             padding=5,
         )
-        lbl_frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
+        self.label_frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
 
         # File Path
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Import file path:")
         lbl.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
@@ -119,24 +119,21 @@ class ImportDialog(BaseDialog):
         self.browse_btn.pack(side=tk.RIGHT, padx=5)
 
         # Import type
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Import type:", width=20)
         lbl.pack(side=tk.LEFT)
         options = [Distributor.__name__, Invoice.__name__]
         self.setvar(name=VAR_IMPORT_TYPE, value=options[1])
         ent = ttk.Combobox(
-            master=frm,
-            textvariable=VAR_IMPORT_TYPE,
-            state="readonly",
-            values=options,
+            master=frm, textvariable=VAR_IMPORT_TYPE, state="readonly", values=options
         )
         ent.bind(sequence="<<ComboboxSelected>>", func=self.select_import_type)
         ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
         self.import_type_opt = ent
 
         # check delete table
-        frm = ttk.Frame(master=lbl_frm, padding=5)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
         frm.pack(side=tk.TOP, expand=tk.Y, fill=tk.X)
         # lbl = ttk.Label(
         #     master=frm, padding=5, text="Delete table before import", width=20
@@ -276,7 +273,7 @@ class ImportDialog(BaseDialog):
         self.progress_bar.config(mode="indeterminate")
         self.progress_bar.start()
         self.action_btn.config(state=tk.DISABLED)
-        self.import_type_opt.config(state=tk.DISABLED)
+        self.set_frame_state(self.label_frm, tk.DISABLED)
 
         _item = "control"
         self.setvar(name=VAR_MESSAGE, value=f"{_action}... Running")
@@ -319,6 +316,7 @@ class ImportDialog(BaseDialog):
 
         self.update_idletasks()
         self.action_btn.config(state=tk.DISABLED)
+        self.set_frame_state(self.label_frm, tk.DISABLED)
         self.progress_bar.config(mode="indeterminate")
         self.progress_bar.start()
 
@@ -358,8 +356,8 @@ class ImportDialog(BaseDialog):
                 self.treeview.item(item=iid, values=("Cancel"))
                 self.treeview.item(item=_item, values=("Cancel"))
                 self.progress_bar.stop()
-                self.browse_btn.config(state=tk.NORMAL)
                 self.action_btn.config(state=tk.NORMAL)
+                self.set_frame_state(self.label_frm, tk.NORMAL)
                 self.setvar(name=VAR_MESSAGE, value=f"{_action}... Cancel")
                 return
             if ask:
@@ -373,7 +371,7 @@ class ImportDialog(BaseDialog):
                     logging.exception(msg=_action)
                     self.progress_bar.stop()
                     self.browse_btn.config(state=tk.NORMAL)
-                    self.action_btn.config(state=tk.NORMAL)
+                    self.set_frame_state(self.label_frm, tk.NORMAL)
                     self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
                     self.treeview.item(item=_item, values=("Error"))
                     self.treeview.item(item=iid, values=(str(e)))
@@ -403,7 +401,7 @@ class ImportDialog(BaseDialog):
             logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
-            self.browse_btn.config(state=tk.NORMAL)
+            self.set_frame_state(self.label_frm, tk.NORMAL)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
             self.treeview.item(item=_item, values=("Error"))
             self.treeview.item(item=iid, values=(str(e)))
@@ -459,9 +457,7 @@ class ImportDialog(BaseDialog):
         self.progress_bar.stop()
         self._event = None
         self.action_btn.config(state=tk.NORMAL)
-        self.browse_btn.config(state=tk.NORMAL)
-        self.import_type_opt.config(state=tk.NORMAL)
-        self.action_btn.focus_set()
+        self.set_frame_state(self.label_frm, tk.NORMAL)
         if thread.name == THREAD_CONTROL_EXCEL:
             _item = "control"
             res_code, res_msg, res_data = thread.result

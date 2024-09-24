@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-__version__ = VERSION = "0.2.0"
+__version__ = VERSION = "0.2.1"
 __package__ = PACKAGE = "new-certificazione-770"
 
 __description__ = DESCRIPTION = (

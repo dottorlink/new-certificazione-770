@@ -85,12 +85,7 @@ class BaseDialog(Dialog):
                 # Ensure the choices are in list of 2-tuples BC THAT IS HOW DJANGO WANTS IT
                 choices = options_dict[key]
                 _var = tk.StringVar(self, name=key)
-                _ent = ttk.Combobox(
-                    master=master,
-                    textvariable=_var,
-                    values=choices,
-                    state="readonly",
-                )
+                _ent = ttk.Combobox(master=master, textvariable=_var, values=choices)
             elif field_type in ["date", "date-time", "date-time"]:
                 _var = tk.StringVar(self, name=key)
                 _ent = DateEntry(
@@ -145,6 +140,17 @@ class BaseDialog(Dialog):
             messagebox.showerror(title="Validate data", message=msg, parent=self)
             self.result = None
             return False
+
+    def set_frame_state(self, frame, state):
+        for child in frame.winfo_children():
+            w_type = child.winfo_class()
+            if w_type not in ("Frame", "Labelframe", "TFrame", "TLabelframe"):
+                if w_type in ("TCombobox", "TEntry") and state == tk.NORMAL:
+                    child.config(state="readonly")
+                else:
+                    child.config(state=[state])
+            else:
+                self.set_frame_state(child, state)
 
 
 def extract_field_metadata(property_info):
