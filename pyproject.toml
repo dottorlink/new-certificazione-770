@@ -14,7 +14,6 @@ dependencies = [
     "openpyxl",
     "pydantic",
     "pyinstaller>=6.10.0",
-    "git-changelog>=2.5.2",
     "pywinstyles>=1.8",
 ]
 requires-python = ">=3.10"
@@ -24,24 +23,6 @@ license = {text = "MIT"}
 [build-system]
 requires = ["hatchling", "hatch-pyinstaller",]
 build-backend = "hatchling.build"
-
-
-[tool.git-changelog]
-bump = "minor"
-convention = "conventional"
-in-place = false
-# figilter-commits = "0.0.1.."
-marker-line = "<!-- insertion marker -->"
-output = "CHANGELOG.md"
-parse-refs = false
-parse-trailers = false
-provider = "github"
-repository = "."
-sections = "build,deps,feat,fix,refactor"
-template = "keepachangelog"
-version-regex = "^## \\\\[(?P<version>v?[^\\\\]]+)"
-versioning = "semver"
-zerover = true
 
 [tool.pdm]
 distribution = true
