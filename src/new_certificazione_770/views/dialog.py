@@ -7,8 +7,8 @@ _Description_
 # Libs
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter.simpledialog import Dialog
 from tkinter import messagebox
+from tkinter.simpledialog import Dialog
 
 # Modules
 from tkcalendar import DateEntry
@@ -25,16 +25,16 @@ class BaseDialog(Dialog):
         super().__init__(parent=parent, title=title)
 
     def headerbox(self, master, default: str) -> None:
-        row_frm = ttk.Frame(master=master, padding=10)
-        row_frm.pack(side=tk.TOP, fill=tk.X, expand=1)
+        frm = ttk.Frame(master=master, padding=10)
+        frm.pack(side=tk.TOP, fill=tk.X, expand=1)
         lbl = tk.Label(
-            master=row_frm,
+            master=frm,
             text=self._title,
-            font=("TkDefaultFont", 10, "bold"),
+            font=("TkCaptionFont", 14, "bold"),
         )
         lbl.pack(side=tk.LEFT, expand=1, fill=tk.X)
         lbl = tk.Label(
-            master=row_frm,
+            master=frm,
             text="",
             image=self._args.get("image", default),
             compound=tk.LEFT,
@@ -85,12 +85,7 @@ class BaseDialog(Dialog):
                 # Ensure the choices are in list of 2-tuples BC THAT IS HOW DJANGO WANTS IT
                 choices = options_dict[key]
                 _var = tk.StringVar(self, name=key)
-                _ent = ttk.Combobox(
-                    master=master,
-                    textvariable=_var,
-                    values=choices,
-                    state="readonly",
-                )
+                _ent = ttk.Combobox(master=master, textvariable=_var, values=choices)
             elif field_type in ["date", "date-time", "date-time"]:
                 _var = tk.StringVar(self, name=key)
                 _ent = DateEntry(
@@ -145,6 +140,17 @@ class BaseDialog(Dialog):
             messagebox.showerror(title="Validate data", message=msg, parent=self)
             self.result = None
             return False
+
+    def set_frame_state(self, frame, state):
+        for child in frame.winfo_children():
+            w_type = child.winfo_class()
+            if w_type not in ("Frame", "Labelframe", "TFrame", "TLabelframe"):
+                if w_type in ("TCombobox", "TEntry") and state == tk.NORMAL:
+                    child.config(state="readonly")
+                else:
+                    child.config(state=[state])
+            else:
+                self.set_frame_state(child, state)
 
 
 def extract_field_metadata(property_info):

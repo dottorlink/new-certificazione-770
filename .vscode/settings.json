@@ -5,8 +5,11 @@
     "cSpell.words": [
         "certificazione",
         "darkdetect",
+        "ENTE",
         "padx",
         "startfile",
-        "textvariable"
-    ]
+        "textvariable",
+        "tkcalendar"
+    ],
+    "cSpell.language": "en,lorem,en-GB"
 }

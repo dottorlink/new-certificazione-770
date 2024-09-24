@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "New Certificazione 770"
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "0.2.1"
 #define MyAppPublisher "Dottorlink <dottorlink@gmail.com>"
 #define MyAppURL "https://github.com/dottorlink/new-certificazione-770/releases/latest"
 #define MyAppExeName "new-certificazione-770.exe"
@@ -34,7 +34,7 @@ LicenseFile=LICENSE.txt
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 ; PrivilegesRequiredOverridesAllowed=dialog
-OutputDir=sdist
+OutputDir=.\release
 OutputBaseFilename={#MyAppBaseName}-{#MyAppVersion}-setup
 SetupIconFile=.\src\new_certificazione_770\assets\main.ico
 Compression=lzma

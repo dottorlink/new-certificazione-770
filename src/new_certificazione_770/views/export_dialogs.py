@@ -7,20 +7,21 @@ Import Dialog
 import datetime
 import logging
 import os
-from queue import Queue
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter import filedialog, messagebox
+from queue import Queue
 from threading import Event
+from tkinter import filedialog, messagebox
 
-# Libs
-from tkcalendar import DateEntry
+from controllers.controller import Controller
 
 # Own modules
 from controllers.result_thread import ResultThread
-from controllers.controller import Controller
+from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
 from models.dat_model import DATFile
-from helpers import MSG_ERROR_TEMPLATE, MSG_WARNING_TEMPLATE, MSG_SUCCESS_TEMPLATE
+
+# Libs
+from tkcalendar import DateEntry
 from views.dialog import BaseDialog
 
 # Constants
@@ -58,122 +59,111 @@ class ExportDialog(BaseDialog):
         super().__init__(parent=parent, title=title, **kwargs)
 
     def body(self, master):
-        body_frm = ttk.Frame(master=master, padding=10)
-        body_frm.pack(fill=tk.BOTH, expand=tk.YES)
+        body_frm = ttk.Frame(master=master, padding=10, width=200)
+        body_frm.pack(fill=tk.BOTH, expand=tk.Y)
 
         # Header
         self.headerbox(master=body_frm, default="export")
 
         # Subtitle
-        _txt = "Complete the form to begin your export process"
-        lbl = ttk.Label(
-            master=body_frm, text=_txt, font=("TkDefaultFont", 9, "bold"), padding=10
+        self.label_frm = ttk.LabelFrame(
+            master=body_frm,
+            text="Complete the form to begin your export process",
+            padding=5,
         )
-        lbl.pack(side=tk.TOP, expand=1, fill=tk.X)
+        self.label_frm.pack(side=tk.TOP, expand=1, fill=tk.X)
 
         # Export folder
-        _ind = 1
-        frm = ttk.LabelFrame(master=body_frm, padding=5, text=f"{_ind}. Export folder:")
-        frm.pack(
-            side=tk.TOP,
-            fill=tk.X,
-        )
+        frm = ttk.Frame(master=self.label_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl = ttk.Label(master=frm, padding=5, text="Export folder:")
+        lbl.pack(side=tk.TOP, fill=tk.X)
         var = tk.StringVar(master=self, name=VAR_EXPORT_FOLDER, value="")
         ent = ttk.Entry(master=frm, textvariable=var, state="readonly")
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=5)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
         ent.bind(sequence="<Return>", func=self.browse)
         btn = ttk.Button(master=frm, image="folder", command=self.browse)
         btn.pack(side=tk.RIGHT, padx=5)
         btn.focus_set()
 
         # Export type
-        _ind += 1
-        frm = ttk.LabelFrame(master=body_frm, padding=5, text=f"{_ind} Export type:")
-        frm.pack(side=tk.TOP, fill=tk.X)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl = ttk.Label(master=frm, padding=5, text="Export type:", width=20)
+        lbl.pack(side=tk.LEFT)
         options = [EXPORT_TYPE_DAT]
+        self.setvar(name=VAR_EXPORT_TYPE, value=options[0])
         ent = ttk.Combobox(
             master=frm, textvariable=VAR_EXPORT_TYPE, state="readonly", values=options
         )
-        self.setvar(name=VAR_EXPORT_TYPE, value=options[0])
-        ent.pack(side=tk.TOP, fill=tk.X)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
         # Export year
-        _ind += 1
-        frm = ttk.LabelFrame(master=body_frm, padding=5, text=f"{_ind}. Export year:")
-        frm.pack(side=tk.TOP, fill=tk.X)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl = ttk.Label(master=frm, padding=5, text="Export year:", width=20)
+        lbl.pack(side=tk.LEFT)
         options = self._args.get(OPT_YEARS_LIST, [2024])
+        self.setvar(name=VAR_EXPORT_YEAR, value=options[0])
         ent = ttk.Combobox(
             master=frm, textvariable=VAR_EXPORT_YEAR, state="readonly", values=options
         )
-        self.setvar(name=VAR_EXPORT_YEAR, value=options[0])
-        ent.pack(side=tk.TOP, fill=tk.X)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
         # Export signature date
-        _ind += 1
-        frm = ttk.LabelFrame(
-            master=body_frm, padding=5, text=f"{_ind}. Export signature date:"
-        )
-        frm.pack(side=tk.TOP, fill=tk.X)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl = ttk.Label(master=frm, padding=5, text="Export signature date:", width=20)
+        lbl.pack(side=tk.LEFT)
+        self.setvar(name=VAR_SIGNATURE_DATE, value=datetime.date.today().isoformat())
         ent = DateEntry(
             master=frm,
             selectmode="day",
             date_pattern="yyyy-MM-dd",
             locale="it_IT",
+            state="readonly",
             textvariable=VAR_SIGNATURE_DATE,
         )
-        self.setvar(name=VAR_SIGNATURE_DATE, value=datetime.date.today().isoformat())
-        ent.pack(side=tk.TOP, fill=tk.X)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
         # Export record limit
-        _ind += 1
-        frm = ttk.LabelFrame(
-            master=body_frm, padding=5, text=f"{_ind}. Export record limit:"
-        )
-        frm.pack(side=tk.TOP, fill=tk.X)
+        frm = ttk.Frame(master=self.label_frm, padding=5)
+        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl = ttk.Label(master=frm, padding=5, text="Export record limit:", width=20)
+        lbl.pack(side=tk.LEFT)
         options = ["All", "1000", "100", "10", "5"]
-        ent = ttk.Combobox(
-            master=frm,
-            state="readonly",
-            values=options,
-            textvariable=VAR_EXPORT_LIMIT,
-        )
         self.setvar(name=VAR_EXPORT_LIMIT, value=options[0])
-        ent.pack(side=tk.TOP, fill=tk.X)
+        ent = ttk.Combobox(
+            master=frm, values=options, state="readonly", textvariable=VAR_EXPORT_LIMIT
+        )
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
 
         # Message frame
-        _ind += 1
-        frm = ttk.LabelFrame(
-            master=body_frm, padding=5, text=f"{_ind}. Click to export:"
-        )
-        frm.pack(side=tk.TOP, fill=tk.X)
-        row = ttk.Frame(master=frm)
-        row.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
-        lbl = ttk.Label(
-            master=row, textvariable=VAR_MESSAGE, text="Choose a file", width=50
-        )
+        frm = ttk.Frame(master=body_frm, padding=5)
+        frm.pack(side=tk.TOP, fill=tk.X, expand=tk.Y)
         self.setvar(name=VAR_MESSAGE, value="Choose a folder")
-        lbl.pack(side=tk.LEFT, fill=tk.X, padx=5)
+        lbl = ttk.Label(master=frm, textvariable=VAR_MESSAGE)
+        lbl.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
         self.action_btn = ttk.Button(
-            master=row,
+            master=frm,
             text=BTN_EXPORT,
             command=self.export,
             state=tk.DISABLED,
             style="Accent.TButton",
         )
         self.action_btn.pack(side=tk.RIGHT, padx=5)
-
-        self.progress_bar = ttk.Progressbar(master=frm, mode="indeterminate")
-        self.progress_bar.pack(side=tk.TOP, fill=tk.X, pady=5)
+        self.progress_bar = ttk.Progressbar(master=body_frm, mode="indeterminate")
+        self.progress_bar.pack(side=tk.TOP, fill=tk.X, expand=tk.Y, pady=5)
 
         self.treeview = ttk.Treeview(
-            master=frm,
+            master=body_frm,
             show="tree",
             height=5,
             columns=["Message"],
         )
         self.treeview.column(column="#0", width=150, anchor="w")
-        self.treeview.column(column="Message", width=200, anchor="w", stretch=True)
-        self.treeview.pack(side=tk.TOP, fill=tk.X, pady=5)
+        self.treeview.column(column="Message", width=20, anchor="w", stretch=True)
+        self.treeview.pack(side=tk.TOP, fill=tk.X, expand=tk.Y, pady=5)
 
         self.resizable(0, 0)
 
@@ -181,7 +171,7 @@ class ExportDialog(BaseDialog):
         """Button box"""
         box = ttk.Frame(master=self)
 
-        w = ttk.Button(box, text="Cancel", width=10, command=self.cancel)
+        w = ttk.Button(box, text="Cancel", width=20, command=self.cancel)
         w.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.bind(sequence="<Escape>", func=self.cancel)
@@ -260,6 +250,7 @@ class ExportDialog(BaseDialog):
 
         self.progress_bar.config(mode="indeterminate", value=0)
         self.progress_bar.start()
+        self.set_frame_state(self.label_frm, tk.DISABLED)
         self.action_btn.config(state=tk.DISABLED)
 
         _action = BTN_EXPORT
@@ -316,6 +307,7 @@ class ExportDialog(BaseDialog):
             logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
+            self.set_frame_state(self.label_frm, tk.NORMAL)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
             self.treeview.item(item=_item, values=("Error"))
             self.treeview.item(item=iid, values=(str(e)))
@@ -344,6 +336,7 @@ class ExportDialog(BaseDialog):
             logging.exception(msg=_action)
             self.progress_bar.stop()
             self.action_btn.config(state=tk.NORMAL)
+            self.set_frame_state(self.label_frm, tk.NORMAL)
             self.setvar(name=VAR_MESSAGE, value=f"{_action}... Error")
             self.treeview.item(item=_item, values="Error")
             self.treeview.item(item=iid, values=(str(e)))
@@ -400,6 +393,9 @@ class ExportDialog(BaseDialog):
         _action = thread.name
         logging.debug(msg=f"Thread {_action} terminated")
         self._event = None
+
+        self.set_frame_state(self.label_frm, tk.NORMAL)
+        self.action_btn.config(state=tk.NORMAL)
         if thread.name == THREAD_EXPORT_GUFANA:
             # TODO
             return

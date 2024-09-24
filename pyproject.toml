@@ -1,6 +1,6 @@
 [project]
 name = "new-certificazione-770"
-version = "0.2.0"
+version = "0.2.1"
 description = "Application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application"
 authors = [
     {name = "Dottorlink", email = "dottorlink@gmail.com"},
