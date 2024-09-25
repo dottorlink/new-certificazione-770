@@ -85,12 +85,8 @@ class MainWindow(ttk.Frame):
         super().__init__(master=parent, *args, **kwargs)
         self.parent = parent
         self.pack(fill=tk.BOTH, expand=tk.YES)
-        self.parent.withdraw()
+
         self.version = config.VERSION
-        self.parent.title(f"{config.PACKAGE} v.{config.VERSION}")
-        self.parent.geometry("{}x{}".format(1000, 800))
-        self.parent.minsize(width=800, height=800)
-        self.parent.iconbitmap(bitmap=os.path.join(RES_PATH, "assets", "main.ico"))
 
         self.controller: Controller = None
         self.settings: dict = None
@@ -112,11 +108,9 @@ class MainWindow(ttk.Frame):
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
-            self.on_close()
+            self.parent.on_close()
             return
 
-        self.parent.protocol("WM_DELETE_WINDOW", func=self.on_close)
-        self.parent.deiconify()
         self.after(ms=200, func=self._initialize)
 
     def _load_images(self) -> None:
@@ -161,7 +155,7 @@ class MainWindow(ttk.Frame):
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
-            self.on_close()
+            self.parent.on_close()
 
     def create_menu_bar(self, master) -> None:
         menu_items = {
@@ -308,7 +302,7 @@ class MainWindow(ttk.Frame):
     # Actions
     def on_action(self, action: str, event=None) -> None:
         if action == BTN_EXIT:
-            self.on_close()
+            self.parent.on_close()
         elif action == BTN_IMPORT:
             self.show_import()
         elif action == BTN_EXPORT:
@@ -333,10 +327,6 @@ class MainWindow(ttk.Frame):
             _action = f"Action {action} not implemented yet!"
             # print(_action)
             logging.warning(msg=_action)
-
-    def on_close(self):
-        # self.destroy()
-        self.parent.quit()
 
     # Treeview action
     def treeview_refresh(self) -> None:
@@ -745,17 +735,33 @@ def apply_theme_to_titlebar(window):
         window.wm_attributes("-alpha", 1)
 
 
+class MyApplication(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        sv_ttk.set_theme(theme=darkdetect.theme(), root=self)
+        self.title(f"{config.PACKAGE} v.{config.VERSION}")
+        self.geometry("{}x{}".format(1000, 800))
+        self.minsize(width=800, height=800)
+        self.iconbitmap(bitmap=os.path.join(RES_PATH, "assets", "main.ico"))
+        self.withdraw()
+        self.protocol("WM_DELETE_WINDOW", func=self.on_close)
+        self.mainView = MainWindow(parent=self)
+        self.deiconify()
+
+    def on_close(self):
+        # self.destroy()
+        self.quit()
+
+
 def main() -> None:
     """Main function"""
     logging.config.dictConfig(config.LOGGING_CONFIG)
     logging.info(msg="-" * 50)
     logging.info(msg="Start application")
     if instance_check(config.PACKAGE):
-        root = tk.Tk()
-        MainWindow(parent=root)
-        sv_ttk.set_theme(theme=darkdetect.theme(), root=root)
+        app = MyApplication()
         # apply_theme_to_titlebar(window=application)
-        root.mainloop()
+        app.mainloop()
         logging.info("End application")
     else:
         logging.warning("Application is yet running")
