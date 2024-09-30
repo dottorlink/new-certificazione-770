@@ -221,7 +221,7 @@ class Controller:
         Returns:
             tuple[Dict[str, Any] | None, bool]: record inserted or updated, is update
         """
-        key = "id"
+        key = "name"
         if dict(record).get(key, None):
             _record, is_updated = self.repository.upsert(
                 model=Setting, record=record, columns=key
@@ -273,10 +273,15 @@ class Controller:
         Returns:
             Dict[str, Any] | None: company record | None
         """
-        _record = self.repository.get_first(Setting)
+        records = self.repository.list(Setting)
         return (
-            _record.model_dump(exclude={"created_at", "updated_at"})
-            if _record
+            list(
+                [
+                    row.model_dump(mode="json", exclude={"created_at", "updated_at"})
+                    for row in records
+                ]
+            )
+            if records
             else None
         )
 

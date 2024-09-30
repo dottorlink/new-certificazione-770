@@ -65,7 +65,7 @@ class Repository:
         inspector = inspect(self.engine)
         columns = inspector.get_columns("settings")
         column_names = [column["name"] for column in columns]
-        if "code_somme_non_sogg" not in column_names:
+        if "name" not in column_names:
             Setting.__table__.drop(self.engine)
             SQLModel.metadata.create_all(bind=self.engine, checkfirst=True)
 

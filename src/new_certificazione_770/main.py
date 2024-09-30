@@ -431,14 +431,18 @@ class MainWindow(ttk.Frame):
                 )
                 return
 
-            _code_ente_prev = self.settings.get(
-                "code_ente_prev", helpers.EXPORT_CODE_ENTE_PREV
+            _code_ente_prev = (
+                self.get_setting_value("code_ente_prev")
+                or helpers.EXPORT_CODE_ENTE_PREV
             )
-            _denom_ente_prev = self.settings.get(
-                "denom_ente_prev", helpers.EXPORT_DENOM_ENTE_PREV
+            _denom_ente_prev = (
+                self.get_setting_value("denom_ente_prev")
+                or helpers.EXPORT_DENOM_ENTE_PREV
             )
-            _code_somme_non_sogg = self.settings.get(
-                "code_somme_non_sogg", helpers.EXPORT_CODE_SOMME_NON_SOGG
+
+            _code_somme_non_sogg = (
+                self.get_setting_value("code_somme_non_sogg")
+                or helpers.EXPORT_CODE_SOMME_NON_SOGG
             )
 
             _action = "Show Export dialog"
@@ -626,18 +630,19 @@ class MainWindow(ttk.Frame):
             data = self.settings
             _action = "Show Settings dialog"
             logging.debug(msg=f"{_action}: {data=}")
-            _args = {"image": "settings", "data": data, "model": models.Setting}
+            _args = {"image": "settings", "settings": data, "model": models.Setting}
             dlg = views.SettingsDialog(parent=self, title=BTN_SETTINGS, **_args)
             result = dlg.result
             if result:
-                if result == data:
-                    logging.warning(f"{_action}: no change")
-                    return
+                # if result == data
+                #     logging.warning(f"{_action}: no change")
+                #     return
 
                 _action = "Update settings on database"
+                for value in result:
+                    record, _ = self.controller.update_settings(record=value)
                 logging.debug(msg=f"{_action}: {result=}")
-                record, _ = self.controller.update_settings(record=result)
-                self.settings = record
+                self.settings = result
                 msg = helpers.MSG_SUCCESS_TEMPLATE.format(_action)
                 logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self)
@@ -715,6 +720,16 @@ class MainWindow(ttk.Frame):
             data = helpers.DEFAULT_SETTINGS
         logging.info(msg=f"{_action}: {data=}")
         return data
+
+    def get_setting_value(self, name) -> str:
+        if self.settings is None:
+            self.settings = self._get_settings()
+
+        for item in self.settings:
+            if item["name"] == name:
+                return str(item["value"])
+
+        return None
 
 
 def apply_theme_to_titlebar(window):
