@@ -7,13 +7,14 @@ Base model for database
 """
 
 # Built-in/Generic Imports
+import re
 from datetime import date, datetime
 from typing import Optional
-import re
+
+from pydantic import ConfigDict, field_validator
 
 # Libs
-from sqlmodel import SQLModel, Field, Relationship
-from pydantic import ConfigDict, field_validator
+from sqlmodel import Field, Relationship, SQLModel
 
 # Constants
 

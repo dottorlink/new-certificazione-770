@@ -5,11 +5,15 @@ About dialog
 @File: about.py
 @Date: 2024-08-14
 """
+
+# Built-in/Generic Imports
+import pathlib
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
+
+# Owned modules
 from .dialog import BaseDialog
-import pathlib
 
 
 class AboutDialog(BaseDialog):
@@ -97,7 +101,6 @@ class TestWindow(tk.Tk):
 
 
 if __name__ == "__main__":
-
     w = TestWindow()
     AboutDialog(w)
     w.mainloop()

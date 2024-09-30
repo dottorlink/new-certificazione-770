@@ -5,9 +5,15 @@
     "cSpell.words": [
         "certificazione",
         "darkdetect",
+        "DATCSV",
         "ENTE",
+        "headerbox",
         "padx",
+        "pydantic",
+        "pywinstyles",
+        "sqlmodel",
         "startfile",
+        "Tableview",
         "textvariable",
         "tkcalendar"
     ],

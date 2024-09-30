@@ -13,16 +13,16 @@ from queue import Queue
 from threading import Event
 from tkinter import filedialog, messagebox
 
-from controllers.controller import Controller
-
 # Own modules
-from controllers.result_thread import ResultThread
+from controllers import ResultThread
+from controllers.controller import Controller
 from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
-from models.dat_model import DATFile
+from models import DATFile
 
 # Libs
 from tkcalendar import DateEntry
-from views.dialog import BaseDialog
+
+from .dialog import BaseDialog
 
 # Constants
 VAR_EXPORT_FOLDER = "export_folder"

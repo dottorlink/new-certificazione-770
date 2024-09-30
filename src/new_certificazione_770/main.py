@@ -18,13 +18,16 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
 
+# OWN Modules
 import config
-import darkdetect
-import pywinstyles
+import controllers
 
 # Modules
+import darkdetect
+import models
+import pywinstyles
 import sv_ttk
-from controllers.controller import Controller
+import views
 from helpers import (
     DEFAULT_COMPANY,
     DEFAULT_SETTINGS,
@@ -36,14 +39,6 @@ from helpers import (
     instance_check,
     resource_path,
 )
-from models.base_models import Company, Distributor, Setting
-from views.about import AboutDialog
-from views.company_dialog import CompanyDialog
-from views.distributor_dialog import DistributorDialog
-from views.export_dialogs import ExportDialog
-from views.import_dialogs import ImportDialog
-from views.settings_dialog import SettingsDialog
-from views.widgets import Tableview
 
 # Own modules
 
@@ -81,14 +76,14 @@ class MainWindow(ttk.Frame):
         tk (_type_): _description_
     """
 
-    def __init__(self, parent, *args, **kwargs) -> None:
-        super().__init__(master=parent, *args, **kwargs)
-        self.parent = parent
+    def __init__(self, master, *args, **kwargs) -> None:
+        super().__init__(master=master, *args, **kwargs)
+        self.master = master
         self.pack(fill=tk.BOTH, expand=tk.YES)
 
         self.version = config.VERSION
 
-        self.controller: Controller = None
+        self.controller: controllers.Controller = None
         self.settings: dict = None
 
         try:
@@ -98,7 +93,7 @@ class MainWindow(ttk.Frame):
 
             _action = "Draw application"
             logging.debug(msg=_action)
-            self.create_menu_bar(master=self.parent)
+            self.create_menu_bar(master=self.master)
             self.create_status_bar()
             self.create_button_bar()
             self.create_left_panel()
@@ -108,7 +103,7 @@ class MainWindow(ttk.Frame):
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
-            self.parent.on_close()
+            self.master.on_close()
             return
 
         self.after(ms=200, func=self._initialize)
@@ -143,7 +138,7 @@ class MainWindow(ttk.Frame):
                 db_path = os.path.join(EXE_PATH, f"{config.PACKAGE}.db")
                 _action = f"Open/create database: {db_path=}"
                 logging.debug(msg=_action)
-                self.controller = Controller(db_path=db_path, echo=False)
+                self.controller = controllers.Controller(db_path=db_path, echo=False)
 
             if self.settings is None:
                 self.settings = self._get_settings()
@@ -155,7 +150,7 @@ class MainWindow(ttk.Frame):
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
-            self.parent.on_close()
+            self.master.on_close()
 
     def create_menu_bar(self, master) -> None:
         menu_items = {
@@ -255,7 +250,7 @@ class MainWindow(ttk.Frame):
         tree_view_frm.pack(fill=tk.BOTH, expand=tk.YES)
 
         # Treeview fields
-        self.fields_list = Distributor.model_json_schema(mode="serialization")[
+        self.fields_list = models.Distributor.model_json_schema(mode="serialization")[
             "properties"
         ]
         columns_list = [
@@ -267,7 +262,7 @@ class MainWindow(ttk.Frame):
             for key, val in self.fields_list.items()
         ]
 
-        self.treeview = Tableview(
+        self.treeview = views.Tableview(
             master=tree_view_frm,
             searchable=True,
             autoalign=True,
@@ -302,7 +297,7 @@ class MainWindow(ttk.Frame):
     # Actions
     def on_action(self, action: str, event=None) -> None:
         if action == BTN_EXIT:
-            self.parent.on_close()
+            self.master.on_close()
         elif action == BTN_IMPORT:
             self.show_import()
         elif action == BTN_EXPORT:
@@ -412,7 +407,7 @@ class MainWindow(ttk.Frame):
             _action = "Show Import dialog"
             logging.debug(msg=_action)
             _options = {"controller": self.controller}
-            dlg = ImportDialog(parent=self, title=BTN_IMPORT, **_options)
+            dlg = views.ImportDialog(parent=self, title=BTN_IMPORT, **_options)
             result = dlg.result
             if result:
                 self.treeview_refresh()
@@ -454,7 +449,7 @@ class MainWindow(ttk.Frame):
                 "years": years,
                 "controller": self.controller,
             }
-            ExportDialog(parent=self, title=BTN_EXPORT, **_options)
+            views.ExportDialog(parent=self, title=BTN_EXPORT, **_options)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
@@ -467,8 +462,8 @@ class MainWindow(ttk.Frame):
         try:
             _action = "Show Distributor dialog"
             logging.debug(msg=_action)
-            _args = {"image": "user-add", "model": Distributor}
-            dlg = DistributorDialog(parent=self, title=BTN_USER_ADD, **_args)
+            _args = {"image": "user-add", "model": models.Distributor}
+            dlg = views.DistributorDialog(parent=self, title=BTN_USER_ADD, **_args)
             result = dlg.result
             if result:
                 _action = "Insert distributor"
@@ -508,8 +503,8 @@ class MainWindow(ttk.Frame):
 
             _action = "Show Company dialog"
             logging.debug(msg=f"{_action}: {data=}")
-            _args = {"image": "company", "data": data, "model": Company}
-            dlg = CompanyDialog(parent=self, title=BTN_COMPANY, **_args)
+            _args = {"image": "company", "data": data, "model": models.Company}
+            dlg = views.CompanyDialog(parent=self, title=BTN_COMPANY, **_args)
             result = dlg.result
             if result:
                 if result == data:
@@ -553,9 +548,9 @@ class MainWindow(ttk.Frame):
             _args = {
                 "image": "user-edit",
                 "data": data,
-                "model": Distributor,
+                "model": models.Distributor,
             }
-            dlg = DistributorDialog(parent=self, title=BTN_USER_EDIT, **_args)
+            dlg = views.DistributorDialog(parent=self, title=BTN_USER_EDIT, **_args)
             result = dlg.result
             if result:
                 if result == data:
@@ -601,13 +596,20 @@ class MainWindow(ttk.Frame):
                 f"\nOS: {uname.system} {uname.release} v.{uname.version}"
                 f"\nMachine: {uname.machine}"
             )
+
+            # Add file LICENSE.txt exist control
+            if os.path.exists(os.path.join(EXE_PATH, config.LICENSE_FILE_NAME)):
+                _license_file = os.path.join(EXE_PATH, config.LICENSE_FILE_NAME)
+            else:
+                _license_file = None
+
             _args = {
                 "image": "logo-small",
                 "app_name": f"{config.PACKAGE} v{config.VERSION}",
                 "description": _msg,
-                "license_file": os.path.join(EXE_PATH, "LICENSE.txt"),
+                "license_file": _license_file,
             }
-            AboutDialog(parent=self, title=f"About {config.PACKAGE}", **_args)
+            views.AboutDialog(parent=self, title=f"About {config.PACKAGE}", **_args)
         except Exception as e:
             logging.exception(msg=_action)
             msg = MSG_ERROR_TEMPLATE.format(_action, e)
@@ -622,12 +624,8 @@ class MainWindow(ttk.Frame):
             data = self.settings
             _action = "Show Settings dialog"
             logging.debug(msg=f"{_action}: {data=}")
-            _args = {
-                "image": "settings",
-                "data": data,
-                "model": Setting,
-            }
-            dlg = SettingsDialog(parent=self, title=BTN_SETTINGS, **_args)
+            _args = {"image": "settings", "data": data, "model": models.Setting}
+            dlg = views.SettingsDialog(parent=self, title=BTN_SETTINGS, **_args)
             result = dlg.result
             if result:
                 if result == data:
@@ -745,7 +743,7 @@ class MyApplication(tk.Tk):
         self.iconbitmap(bitmap=os.path.join(RES_PATH, "assets", "main.ico"))
         self.withdraw()
         self.protocol("WM_DELETE_WINDOW", func=self.on_close)
-        self.mainView = MainWindow(parent=self)
+        self.mainView = MainWindow(master=self)
         self.deiconify()
 
     def on_close(self):

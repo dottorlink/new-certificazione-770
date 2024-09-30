@@ -9,21 +9,21 @@ Repository module
 # Built-in/Generic Imports
 from typing import Any, List, Optional, Type, Union
 
+# Own modules
+from models import Distributor, Invoice
+
 # Libs
 from sqlmodel import (
-    SQLModel,
     Session,
+    SQLModel,
     and_,
     create_engine,
-    desc,
-    select,
     delete,
+    desc,
     distinct,
     func,
+    select,
 )
-
-# Own modules
-from .base_models import Distributor, Invoice
 
 # Constants
 CONNECTION_DIALECT = "sqlite"

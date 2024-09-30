@@ -9,10 +9,8 @@ Controller class module
 # Built-in/Generic Imports
 from typing import Any, Dict
 
-from models.base_models import Company, Distributor, Invoice, Setting
-from models.repository import Repository
-
 # Own modules
+from models import Company, Distributor, Invoice, Repository, Setting
 
 
 # Errors

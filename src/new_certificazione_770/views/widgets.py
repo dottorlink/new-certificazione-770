@@ -6,11 +6,10 @@ _Description_
 # Built-in/Generic Imports
 import tkinter as tk
 import tkinter.ttk as ttk
-from math import ceil
 from datetime import datetime
-from tkinter import font
+from math import ceil
+from tkinter import Grid, Pack, Place, font
 from typing import Any, Dict, List, Union
-from tkinter import Pack, Place, Grid
 
 # Libs
 
@@ -1589,8 +1588,8 @@ class Tableview(ttk.Frame):
             delimiter (str):
                 The character to use for delimiting the values.
         """
-        from tkinter.filedialog import asksaveasfilename
         import csv
+        from tkinter.filedialog import asksaveasfilename
 
         timestamp = datetime.now().strftime("%tk.Y%m%d_%H%M%S")
         initialfile = f"tabledata_{timestamp}.csv"

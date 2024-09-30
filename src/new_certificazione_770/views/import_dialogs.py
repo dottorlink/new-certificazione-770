@@ -18,11 +18,11 @@ from typing import Any
 import pandas
 
 # Own modules
-from controllers.controller import Controller
-from controllers.result_thread import ResultThread
+from controllers import Controller, ResultThread
 from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
-from models.base_models import Distributor, Invoice
-from views.dialog import BaseDialog
+from models import Distributor, Invoice
+
+from .dialog import BaseDialog
 
 # Constants
 VAR_FILE_PATH = "file_path"
