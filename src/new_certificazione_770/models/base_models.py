@@ -46,18 +46,6 @@ class BaseModel(SQLModel):
 class Setting(BaseModel, table=True, extend_existing=True):
     __tablename__ = "settings"
 
-    # code_ente_prev: str = Field(
-    #     title="Codice Ente Previdenziale", min_length=1, max_length=16
-    # )
-
-    # denom_ente_prev: str = Field(
-    #     title="Denominazione Ente Previdenziale", min_length=1, max_length=50
-    # )
-
-    # code_somme_non_sogg: str = Field(
-    #     title="Codice altre somme non soggette", min_length=1, max_length=2
-    # )
-
     name: str = Field(title="Field code", min_length=1, max_length=20)
     title: str = Field(title="Field title", min_length=1)
     type: str = Field(title="Field Type", default="str", min_length=1)
