@@ -10,7 +10,16 @@ Controller class module
 from typing import Any, Dict
 
 # Own modules
-from models import Company, Distributor, Invoice, Repository, Setting
+try:
+    from ..models import Company, Distributor, Invoice, Repository, Setting
+except:
+    from new_certificazione_770.models import (
+        Company,
+        Distributor,
+        Invoice,
+        Repository,
+        Setting,
+    )
 
 
 # Errors

@@ -1,0 +1,28 @@
+[project]
+name = "new-certificazione-770"
+version = "0.2.1"
+description = "Application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application"
+authors = [
+    {name = "Dottorlink", email = "dottorlink@gmail.com"},
+]
+dependencies = [
+    "tkcalendar",
+    "pandas",
+    "sv_ttk",
+    "darkdetect",
+    "sqlmodel",
+    "openpyxl",
+    "pydantic",
+    "pyinstaller>=6.10.0",
+    "pywinstyles>=1.8",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["hatchling", "hatch-pyinstaller",]
+build-backend = "hatchling.build"
+
+[tool.pdm]
+distribution = true

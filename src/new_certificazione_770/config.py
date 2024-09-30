@@ -13,7 +13,7 @@ __email__ = EMAIL = "dottorlink@gmail.com"
 __copyright__ = COPYRIGHT = "Copyright 2024, Dottorlink"
 __license__ = LICENSE = "MIT"
 
-LICENSE_FILE_NAME = "LICENSE.txt"
+LICENSE_FILE_NAME = "LICENSE"
 
 LOG_FILE_NAME = f"{PACKAGE}.log"
 

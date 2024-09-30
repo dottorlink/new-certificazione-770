@@ -18,9 +18,18 @@ from typing import Any
 import pandas
 
 # Own modules
-from controllers import Controller, ResultThread
-from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
-from models import Distributor, Invoice
+try:
+    from controllers import Controller, ResultThread
+    from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
+    from models import Distributor, Invoice
+except:
+    from new_certificazione_770.controllers import Controller, ResultThread
+    from new_certificazione_770.helpers import (
+        MSG_ERROR_TEMPLATE,
+        MSG_SUCCESS_TEMPLATE,
+        MSG_WARNING_TEMPLATE,
+    )
+    from new_certificazione_770.models import Distributor, Invoice
 
 from .dialog import BaseDialog
 

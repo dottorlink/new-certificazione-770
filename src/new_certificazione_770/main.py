@@ -18,34 +18,29 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
 
-# OWN Modules
-import config
-import controllers
-
 # Modules
 import darkdetect
-import models
 import pywinstyles
 import sv_ttk
-import views
-from helpers import (
-    DEFAULT_COMPANY,
-    DEFAULT_SETTINGS,
-    EXPORT_CODE_ENTE_PREV,
-    EXPORT_DENOM_ENTE_PREV,
-    MSG_ERROR_TEMPLATE,
-    MSG_SUCCESS_TEMPLATE,
-    executable_path,
-    instance_check,
-    resource_path,
-)
 
-# Own modules
+# OWN Modules
+try:
+    import config as config
+    import controllers as controllers
+    import helpers as helpers
+    import models as models
+    import views as views
+except:  # noqa: E722
+    import new_certificazione_770.config as config
+    import new_certificazione_770.controllers as controllers
+    import new_certificazione_770.helpers as helpers
+    import new_certificazione_770.models as models
+    import new_certificazione_770.views as views
+
 
 # Constants
-
-EXE_PATH = executable_path()
-RES_PATH = resource_path()
+EXE_PATH = helpers.executable_path()
+RES_PATH = helpers.resource_path()
 
 # Button Constants
 BTN_ABOUT = f"About {config.PACKAGE}"
@@ -101,7 +96,7 @@ class MainWindow(ttk.Frame):
 
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
             self.master.on_close()
             return
@@ -148,7 +143,7 @@ class MainWindow(ttk.Frame):
             self.treeview_refresh()
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
             self.master.on_close()
 
@@ -344,7 +339,7 @@ class MainWindow(ttk.Frame):
                 return
 
             msg = (
-                MSG_SUCCESS_TEMPLATE.format(_action)
+                helpers.MSG_SUCCESS_TEMPLATE.format(_action)
                 + f": records={len(_distribution_list):,d}"
             )
             logging.info(msg=msg)
@@ -369,7 +364,7 @@ class MainWindow(ttk.Frame):
         except Exception as e:
             logging.exception(msg=_action)
             self.configure(cursor="")
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
 
     def treeview_select(self, event=None) -> None:
@@ -413,7 +408,7 @@ class MainWindow(ttk.Frame):
                 self.treeview_refresh()
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_export(self):
@@ -436,9 +431,14 @@ class MainWindow(ttk.Frame):
                 )
                 return
 
-            _code_ente_prev = self.settings.get("code_ente_prev", EXPORT_CODE_ENTE_PREV)
+            _code_ente_prev = self.settings.get(
+                "code_ente_prev", helpers.EXPORT_CODE_ENTE_PREV
+            )
             _denom_ente_prev = self.settings.get(
-                "denom_ente_prev", EXPORT_DENOM_ENTE_PREV
+                "denom_ente_prev", helpers.EXPORT_DENOM_ENTE_PREV
+            )
+            _code_somme_non_sogg = self.settings.get(
+                "code_somme_non_sogg", helpers.EXPORT_CODE_SOMME_NON_SOGG
             )
 
             _action = "Show Export dialog"
@@ -446,6 +446,7 @@ class MainWindow(ttk.Frame):
             _options = {
                 "code_ente_prev": _code_ente_prev,
                 "denom_ente_prev": _denom_ente_prev,
+                "code_somme_non_sogg": _code_somme_non_sogg,
                 "years": years,
                 "controller": self.controller,
             }
@@ -453,7 +454,7 @@ class MainWindow(ttk.Frame):
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
             return
 
@@ -480,14 +481,14 @@ class MainWindow(ttk.Frame):
                 _item = self.treeview.insert_row(index="end", values=values)
                 _iid = _item.iid
                 id = record.get("id", 0)
-                msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
+                msg = helpers.MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
                 logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self)
 
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
             return
 
@@ -499,7 +500,7 @@ class MainWindow(ttk.Frame):
             data = self.controller.get_company()
             if data is None:
                 logging.warning(msg=f"{_action}: no data found, setting default")
-                data = DEFAULT_COMPANY
+                data = helpers.DEFAULT_COMPANY
 
             _action = "Show Company dialog"
             logging.debug(msg=f"{_action}: {data=}")
@@ -515,14 +516,15 @@ class MainWindow(ttk.Frame):
                 logging.debug(msg=f"{_action}: {result=}")
                 result, _ = self.controller.update_company(record=result)
                 msg = (
-                    MSG_SUCCESS_TEMPLATE.format(_action) + f" for id={result.get("id")}"
+                    helpers.MSG_SUCCESS_TEMPLATE.format(_action)
+                    + f" for id={result.get("id")}"
                 )
                 logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus()
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
             return
 
@@ -571,13 +573,13 @@ class MainWindow(ttk.Frame):
                 item = _selected[0]
                 item.values = values
                 item.refresh()
-                msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
+                msg = helpers.MSG_SUCCESS_TEMPLATE.format(_action) + f" for {id=}"
                 logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_about(self) -> None:
@@ -612,7 +614,7 @@ class MainWindow(ttk.Frame):
             views.AboutDialog(parent=self, title=f"About {config.PACKAGE}", **_args)
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_settings(self):
@@ -636,13 +638,13 @@ class MainWindow(ttk.Frame):
                 logging.debug(msg=f"{_action}: {result=}")
                 record, _ = self.controller.update_settings(record=result)
                 self.settings = record
-                msg = MSG_SUCCESS_TEMPLATE.format(_action)
+                msg = helpers.MSG_SUCCESS_TEMPLATE.format(_action)
                 logging.info(msg=msg)
                 messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
 
     def show_user_delete(self):
@@ -679,14 +681,14 @@ class MainWindow(ttk.Frame):
             self.controller.delete_distributor_by_id(ids=ids)
             self.treeview.delete_rows(iids=iids)
             self.config(cursor="")
-            msg = MSG_SUCCESS_TEMPLATE.format(_action) + f" for {ids}"
+            msg = helpers.MSG_SUCCESS_TEMPLATE.format(_action) + f" for {ids}"
             logging.info(msg=msg)
             messagebox.showinfo(title=_action, message=msg, parent=self)
             self.treeview.focus_set()
         except Exception as e:
             logging.exception(msg=_action)
             self.config(cursor="")
-            msg = MSG_ERROR_TEMPLATE.format(_action, e)
+            msg = helpers.MSG_ERROR_TEMPLATE.format(_action, e)
             messagebox.showerror(title=_action, message=msg, parent=self)
 
     def toggle_theme(self) -> None:
@@ -710,7 +712,7 @@ class MainWindow(ttk.Frame):
         data = self.controller.get_settings()
         if data is None:
             logging.warning(msg=f"{_action}: no data found, setting default")
-            data = DEFAULT_SETTINGS
+            data = helpers.DEFAULT_SETTINGS
         logging.info(msg=f"{_action}: {data=}")
         return data
 
@@ -756,7 +758,7 @@ def main() -> None:
     logging.config.dictConfig(config.LOGGING_CONFIG)
     logging.info(msg="-" * 50)
     logging.info(msg="Start application")
-    if instance_check(config.PACKAGE):
+    if helpers.instance_check(config.PACKAGE):
         app = MyApplication()
         # apply_theme_to_titlebar(window=application)
         app.mainloop()

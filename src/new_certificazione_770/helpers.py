@@ -44,10 +44,12 @@ def resource_path() -> str:
 
 EXPORT_CODE_ENTE_PREV = "80078750587"
 EXPORT_DENOM_ENTE_PREV = "INPS"
+EXPORT_CODE_SOMME_NON_SOGG = "22"
 
 DEFAULT_SETTINGS = {
     "code_ente_prev": EXPORT_CODE_ENTE_PREV,
     "denom_ente_prev": EXPORT_DENOM_ENTE_PREV,
+    "code_somme_non_sogg": EXPORT_CODE_SOMME_NON_SOGG,
 }
 
 DEFAULT_COMPANY = {

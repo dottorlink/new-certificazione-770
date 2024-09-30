@@ -9,7 +9,10 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 # Own modules
-from models import Setting
+try:
+    from models import Setting
+except:
+    from new_certificazione_770.models import Setting
 
 from .dialog import BaseDialog
 from .widgets import ScrolledFrame
@@ -37,7 +40,7 @@ class SettingsDialog(BaseDialog):
             font=("TkDefaultFont", 9, "bold"),
             padding=10,
         )
-        lbl.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
 
         self.fields_list = Setting.model_json_schema(mode="serialization")["properties"]
 
@@ -48,7 +51,7 @@ class SettingsDialog(BaseDialog):
             height=400,
             padding=10,
         )
-        scroll_frm.pack(side=tk.TOP, expand=1, fill=tk.BOTH)
+        scroll_frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
 
         self.entry_by_fields(master=scroll_frm, fields_list=self.fields_list)
 

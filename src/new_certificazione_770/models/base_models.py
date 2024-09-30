@@ -49,8 +49,13 @@ class Setting(BaseModel, table=True, extend_existing=True):
     code_ente_prev: str = Field(
         title="Codice Ente Previdenziale", min_length=1, max_length=16
     )
+
     denom_ente_prev: str = Field(
         title="Denominazione Ente Previdenziale", min_length=1, max_length=50
+    )
+
+    code_somme_non_sogg: str = Field(
+        title="Codice altre somme non soggette", min_length=1, max_length=2
     )
 
 

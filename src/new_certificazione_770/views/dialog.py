@@ -26,13 +26,13 @@ class BaseDialog(Dialog):
 
     def headerbox(self, master, default: str) -> None:
         frm = ttk.Frame(master=master, padding=10)
-        frm.pack(side=tk.TOP, fill=tk.X, expand=1)
+        frm.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
         lbl = tk.Label(
             master=frm,
             text=self._title,
             font=("TkCaptionFont", 14, "bold"),
         )
-        lbl.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        lbl.pack(side=tk.LEFT, expand=tk.YES, fill=tk.X)
         lbl = tk.Label(
             master=frm,
             text="",
@@ -80,7 +80,7 @@ class BaseDialog(Dialog):
                 field_options["initial"] = default_value
 
             lbl = ttk.Label(master=master, text=_txt)
-            lbl.pack(side=tk.TOP, expand=1, fill=tk.X)
+            lbl.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
             if options_dict and key in options_dict:
                 # Ensure the choices are in list of 2-tuples BC THAT IS HOW DJANGO WANTS IT
                 choices = options_dict[key]
@@ -105,7 +105,7 @@ class BaseDialog(Dialog):
                 _var = tk.StringVar(self, name=key)
                 _ent = ttk.Entry(master=master, textvariable=_var)
 
-            _ent.pack(side=tk.TOP, expand=1, fill=tk.X, padx=(0, 5), pady=(0, 5))
+            _ent.pack(side=tk.TOP, expand=tk.YES, fill=tk.X, padx=(0, 5), pady=(0, 5))
 
             if key == "id":
                 _ent.config(state="readonly")
