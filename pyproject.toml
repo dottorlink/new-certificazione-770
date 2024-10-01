@@ -1,10 +1,13 @@
 [tool.poetry]
 name = "new-certificazione-770"
-version = "0.2.1"
+version = "0.3.0"
 description = "Application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application"
 authors = ["Dottorlink <dottorlink@gmail.com>"]
 readme = "README.md"
 license = "MIT"
+repository = "https://github.com/dottorlink/new-certificazione-770"
+
+keywords = ["certificazione", "770"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.14"
@@ -30,6 +33,7 @@ build_command = "pip install poetry && poetry build" # build dists
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+
 [tool.poetry-pyinstaller-plugin]
 # Pyinstaller version (Optional, latest if not set)
 # Does not support version constraint (eg: ^6.4)
@@ -46,9 +50,10 @@ disable-upx = true
 
 [tool.poetry-pyinstaller-plugin.scripts]
 # Equivalent to
-new_certificazione_770 = { source = "src/cli.py", windowed = true, type = "onedir", bundle = true, hiddenimport = ['tkcalendar', 'babel.numbers', 'openpyxl'], icon = "src/new_certificazione_770/assets/main.ico"}
+new-certificazione-770 = { source = "src/cli.py", windowed = true, type = "onedir", bundle = true, hiddenimport = ['tkcalendar', 'babel.numbers', 'openpyxl'], icon = "src/new_certificazione_770/assets/main.ico"}
 # Include metadata from selected packages
 copy-metadata = ["sv_ttk"]
+
 
 
 [tool.poetry-pyinstaller-plugin.package]
@@ -59,3 +64,8 @@ copy-metadata = ["sv_ttk"]
 # loose files in bundle
 "src/new_certificazione_770/assets/*" = "assets"
 ".venv/Lib/site-packages/sv_ttk" = "sv_ttk"
+
+[tool.poetry_bumpversion.file."src/new_certificazione_770/__init__.py"]
+# Duplicate the line above to add more files
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'

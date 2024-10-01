@@ -2,16 +2,24 @@
 #
 # SPDX-License-Identifier: MIT
 
-__version__ = VERSION = "0.2.1"
-__package__ = PACKAGE = "new-certificazione-770"
-
-__description__ = DESCRIPTION = (
-    "Application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application."
+from . import (
+    __author__,
+    __copyright__,
+    __description__,
+    __email__,
+    __license__,
+    __package__,
+    __version__,
 )
-__author__ = AUTHOR = "Dottorlink"
-__email__ = EMAIL = "dottorlink@gmail.com"
-__copyright__ = COPYRIGHT = "Copyright 2024, Dottorlink"
-__license__ = LICENSE = "MIT"
+
+VERSION = __version__
+PACKAGE = __package__
+
+DESCRIPTION = __description__
+AUTHOR = __author__
+EMAIL = __email__
+COPYRIGHT = __copyright__
+LICENSE = __license__
 
 LICENSE_FILE_NAME = "LICENSE"
 

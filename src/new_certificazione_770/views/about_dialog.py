@@ -33,29 +33,34 @@ class AboutDialog(BaseDialog):
         frm = ttk.Frame(master)
 
         image = self._args.get("image", "logo")
-        lbl1 = ttk.Label(frm, image=image, anchor=tk.W)
-        lbl1.pack(side=tk.LEFT, padx=(15, 5), pady=5)
+        lbl = ttk.Label(frm, image=image, anchor=tk.W)
+        lbl.pack(side=tk.LEFT, padx=(15, 5), pady=5)
         app_name = self._args.get("app_name", "Application")
-        lbl2 = ttk.Label(frm, text=app_name, font=("TkCaptionFont", 10, "bold"))
-        lbl2.pack(side=tk.LEFT, padx=(5, 15), pady=5)
+        lbl = ttk.Label(frm, text=app_name, font=("TkCaptionFont", 10, "bold"))
+        lbl.pack(side=tk.LEFT, padx=(5, 15), pady=5)
         frm.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
+
+        text = self._args.get("author", "Author")
+        lbl = ttk.Label(master, text=text)
+        lbl.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
+
+        text = self._args.get("copyright", "Copyright")
+        lbl = ttk.Label(master, text=text)
+        lbl.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
 
         # description
         description = self._args.get("description", None)
         if description:
-            frm = ttk.Frame(master)
-            lbl3 = ttk.Label(frm, text=description, anchor=tk.W)
-            lbl3.pack(padx=(15, 0), pady=5, fill=tk.X, expand=tk.YES)
-            frm.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
-
-        sep = ttk.Separator(master, orient=tk.HORIZONTAL)
-        sep.pack(fill=tk.X, expand=tk.YES)
+            sep = ttk.Separator(master, orient=tk.HORIZONTAL)
+            sep.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X, expand=tk.YES)
+            lbl = ttk.Label(master, text=description, anchor=tk.W)
+            lbl.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X)
 
         # license text widget
         license_file = self._args.get("license_file", None)
         if license_file:
             sep = ttk.Separator(master, orient=tk.HORIZONTAL)
-            sep.pack(fill=tk.X, expand=tk.YES)
+            sep.pack(side=tk.TOP, padx=10, pady=5, fill=tk.X, expand=tk.YES)
             frm = ttk.Frame(master)
             self.text = ScrolledText(frm, wrap="word", width=50, height=10)
             mylicense = pathlib.Path(license_file).read_text()

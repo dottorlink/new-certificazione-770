@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🚀 Features
+
+- Add field code_somme_non_sogg
+
+### 🚜 Refactor
+
+- Refactor application class and main view
+- Refactor dialogs and main windows
+- Delete comments
+
+### 📚 Documentation
+
+- Add git-cliff
+
 ## [release-0.2.1] - 2024-09-24
 
 ### 🚀 Features

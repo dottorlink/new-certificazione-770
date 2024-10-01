@@ -43,7 +43,7 @@ EXE_PATH = helpers.executable_path()
 RES_PATH = helpers.resource_path()
 
 # Button Constants
-BTN_ABOUT = f"About {config.PACKAGE}"
+BTN_ABOUT = "About..."
 BTN_COMPANY = "Company"
 BTN_EXIT = "Exit"
 BTN_EXPORT = "Export"
@@ -594,10 +594,6 @@ class MainWindow(ttk.Frame):
 
             uname = platform.uname()
             _msg = (
-                f"\nAuthor: {config.AUTHOR} <{config.EMAIL}>"
-                f"\nCopyright: {config.COPYRIGHT}"
-                # f"\nDescription:\n{description}"
-                f"\n{"-" * 20}"
                 f"\nPython version: {platform.python_version()}"
                 f"\nOS: {uname.system} {uname.release} v.{uname.version}"
                 f"\nMachine: {uname.machine}"
@@ -612,6 +608,8 @@ class MainWindow(ttk.Frame):
             _args = {
                 "image": "logo-small",
                 "app_name": f"{config.PACKAGE} v{config.VERSION}",
+                "author": f"Author: {config.AUTHOR} <{config.EMAIL}>",
+                "copyright": f"Copyright: {config.COPYRIGHT}",
                 "description": _msg,
                 "license_file": _license_file,
             }
