@@ -9,10 +9,13 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 # Own modules
-from models.base_models import Distributor
-from views.dialog import BaseDialog
-from views.widgets import ScrolledFrame
+try:
+    from models import Distributor
+except:
+    from new_certificazione_770.models import Distributor
 
+from .dialog import BaseDialog
+from .widgets import ScrolledFrame
 
 # Constants
 
@@ -40,7 +43,7 @@ class DistributorDialog(BaseDialog):
         lbl = ttk.Label(
             master=body_frm, text=_txt, font=("TkDefaultFont", 9, "bold"), padding=10
         )
-        lbl.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
 
         self.fields_list = Distributor.model_json_schema(mode="serialization")[
             "properties"
@@ -49,7 +52,7 @@ class DistributorDialog(BaseDialog):
         scroll_frm = ScrolledFrame(
             master=body_frm, autohide=True, width=500, height=400, padding=10
         )
-        scroll_frm.pack(side=tk.TOP, expand=1, fill=tk.BOTH)
+        scroll_frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
 
         options_dict = {"gender": ["M", "F"]}
         self.entry_by_fields(

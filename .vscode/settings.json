@@ -4,10 +4,18 @@
     ],
     "cSpell.words": [
         "certificazione",
+        "Certificazioni",
         "darkdetect",
+        "DATCSV",
+        "Dottorlink",
         "ENTE",
+        "headerbox",
         "padx",
+        "pydantic",
+        "pywinstyles",
+        "sqlmodel",
         "startfile",
+        "Tableview",
         "textvariable",
         "tkcalendar"
     ],

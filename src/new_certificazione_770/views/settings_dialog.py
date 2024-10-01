@@ -7,11 +7,11 @@ _Description_
 # Libs
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import messagebox
 
 # Own modules
-from models.base_models import Setting
-from views.dialog import BaseDialog
-from views.widgets import ScrolledFrame
+from .dialog import BaseDialog
+from .widgets import ScrolledFrame
 
 # Constants
 #
@@ -36,24 +36,54 @@ class SettingsDialog(BaseDialog):
             font=("TkDefaultFont", 9, "bold"),
             padding=10,
         )
-        lbl.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
 
-        self.fields_list = Setting.model_json_schema(mode="serialization")["properties"]
-
+        self.fields_list = {}
         scroll_frm = ScrolledFrame(
             master=body_frm,
             autohide=True,
-            width=500,
-            height=400,
+            width=400,
+            height=300,
             padding=10,
         )
-        scroll_frm.pack(side=tk.TOP, expand=1, fill=tk.BOTH)
+        scroll_frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
+        self.settings = self._args.get("settings", None)
 
-        self.entry_by_fields(master=scroll_frm, fields_list=self.fields_list)
-
-        data = self._args.get("data", None)
-        if data:
-            for key, val in data.items():
-                self.setvar(name=key, value=(val if val else ""))
+        for item in self.settings:
+            text = item.get("title")
+            name = item.get("name")
+            value = item.get("value", "")
+            lbl = ttk.Label(master=scroll_frm, text=text)
+            lbl.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
+            _ent = ttk.Entry(master=scroll_frm, textvariable=name)
+            _ent.pack(side=tk.TOP, expand=tk.YES, fill=tk.X, padx=(0, 5), pady=(0, 5))
+            self.setvar(name=name, value=value)
+            self.fields_list[name] = item
 
         self.update_idletasks()
+
+    def validate(self) -> bool:
+        self.result = None
+        for key in self.fields_list.keys():
+            try:
+                val = self.getvar(name=key)
+            except Exception as e:
+                msg = "Invalid data!\nError:"
+                msg += f"\n - Field {key} is invalid: {e}"
+                msg += "\n\nControl field values and retry"
+                messagebox.showerror(title="Validate data", message=msg, parent=self)
+                self.result = None
+                return False
+
+            if val is None or val == "":
+                msg = "Invalid data!\nError:"
+                msg += f"\n - Field {key} is invalid: null value"
+                msg += "\n\nControl field values and retry"
+                messagebox.showerror(title="Validate data", message=msg, parent=self)
+                self.result = None
+                return False
+            else:
+                self.fields_list[key]["value"] = val
+
+        self.result = list(self.fields_list.values())
+        return True

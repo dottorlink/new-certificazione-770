@@ -7,13 +7,14 @@ Base model for database
 """
 
 # Built-in/Generic Imports
+import re
 from datetime import date, datetime
 from typing import Optional
-import re
+
+from pydantic import ConfigDict, field_validator
 
 # Libs
-from sqlmodel import SQLModel, Field, Relationship
-from pydantic import ConfigDict, field_validator
+from sqlmodel import Field, Relationship, SQLModel
 
 # Constants
 
@@ -45,12 +46,10 @@ class BaseModel(SQLModel):
 class Setting(BaseModel, table=True, extend_existing=True):
     __tablename__ = "settings"
 
-    code_ente_prev: str = Field(
-        title="Codice Ente Previdenziale", min_length=1, max_length=16
-    )
-    denom_ente_prev: str = Field(
-        title="Denominazione Ente Previdenziale", min_length=1, max_length=50
-    )
+    name: str = Field(title="Field code", min_length=1, max_length=20)
+    title: str = Field(title="Field title", min_length=1)
+    type: str = Field(title="Field Type", default="str", min_length=1)
+    value: str = Field(title="Field type", min_length=1, max_length=100)
 
 
 class Distributor(BaseModel, table=True, extend_existing=True):

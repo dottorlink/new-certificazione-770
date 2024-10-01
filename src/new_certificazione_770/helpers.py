@@ -44,11 +44,25 @@ def resource_path() -> str:
 
 EXPORT_CODE_ENTE_PREV = "80078750587"
 EXPORT_DENOM_ENTE_PREV = "INPS"
+EXPORT_CODE_SOMME_NON_SOGG = "22"
 
-DEFAULT_SETTINGS = {
-    "code_ente_prev": EXPORT_CODE_ENTE_PREV,
-    "denom_ente_prev": EXPORT_DENOM_ENTE_PREV,
-}
+DEFAULT_SETTINGS = [
+    {
+        "name": "code_ente_prev",
+        "title": "Codice Ente Previdenziale",
+        "value": EXPORT_CODE_ENTE_PREV,
+    },
+    {
+        "name": "denom_ente_prev",
+        "title": "Denominazione Ente Previdenziale",
+        "value": EXPORT_DENOM_ENTE_PREV,
+    },
+    {
+        "name": "code_somme_non_sogg",
+        "title": "Codice altre somme non soggette",
+        "value": EXPORT_CODE_SOMME_NON_SOGG,
+    },
+]
 
 DEFAULT_COMPANY = {
     "fiscal_code": "04366341008",

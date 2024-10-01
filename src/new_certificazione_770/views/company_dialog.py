@@ -8,15 +8,16 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 # Libs
-
 # Own modules
-from models.base_models import Company
-from views.dialog import BaseDialog
-from views.widgets import ScrolledFrame
+try:
+    from ..models import Company
+except:
+    from new_certificazione_770.models import Company
 
+from .dialog import BaseDialog
+from .widgets import ScrolledFrame
 
 # Constants
-#
 
 
 class CompanyDialog(BaseDialog):
@@ -38,7 +39,7 @@ class CompanyDialog(BaseDialog):
             font=("TkDefaultFont", 9, "bold"),
             padding=10,
         )
-        lbl.pack(side=tk.TOP, expand=1, fill=tk.X)
+        lbl.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
 
         self.fields_list = Company.model_json_schema(mode="serialization")["properties"]
 
@@ -49,7 +50,7 @@ class CompanyDialog(BaseDialog):
             height=400,
             padding=10,
         )
-        scroll_frm.pack(side=tk.TOP, expand=1, fill=tk.BOTH)
+        scroll_frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.BOTH)
 
         self.entry_by_fields(master=scroll_frm, fields_list=self.fields_list)
 

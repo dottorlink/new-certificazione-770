@@ -11,19 +11,20 @@ from typing import Any, List, Optional, Type, Union
 
 # Libs
 from sqlmodel import (
-    SQLModel,
     Session,
+    SQLModel,
     and_,
     create_engine,
-    desc,
-    select,
     delete,
+    desc,
     distinct,
     func,
+    inspect,
+    select,
 )
 
 # Own modules
-from .base_models import Distributor, Invoice
+from .base_models import Distributor, Invoice, Setting
 
 # Constants
 CONNECTION_DIALECT = "sqlite"
@@ -57,10 +58,21 @@ class Repository:
 
         SQLModel.metadata.create_all(bind=self.engine, checkfirst=True)
 
+        self.upgrade_tables()
+
+    def upgrade_tables(self):
+        # Control settings.code_somme_non_sogg
+        inspector = inspect(self.engine)
+        columns = inspector.get_columns("settings")
+        column_names = [column["name"] for column in columns]
+        if "name" not in column_names:
+            Setting.__table__.drop(self.engine)
+            SQLModel.metadata.create_all(bind=self.engine, checkfirst=True)
+
     def recreate_table(self) -> None:
         """Recreate table"""
-        SQLModel.metadata.create_all(self.engine)
         SQLModel.metadata.drop_all(self.engine)
+        SQLModel.metadata.create_all(self.engine)
 
     def _construct_get_stmt(self, id: int):
         stmt = select(self.model).where(self.model.id == id)

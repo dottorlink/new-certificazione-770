@@ -1,47 +1,71 @@
-[project]
+[tool.poetry]
 name = "new-certificazione-770"
-version = "0.2.1"
+version = "0.3.0"
 description = "Application for Certificazioni 770 for company Herbalife S.p.A. to create output file for INPS fiscal application"
-authors = [
-    {name = "Dottorlink", email = "dottorlink@gmail.com"},
-]
-dependencies = [
-    "tkcalendar",
-    "pandas",
-    "sv_ttk",
-    "darkdetect",
-    "sqlmodel",
-    "openpyxl",
-    "pydantic",
-    "pyinstaller>=6.10.0",
-    "git-changelog>=2.5.2",
-    "pywinstyles>=1.8",
-]
-requires-python = ">=3.10"
+authors = ["Dottorlink <dottorlink@gmail.com>"]
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
+repository = "https://github.com/dottorlink/new-certificazione-770"
+
+keywords = ["certificazione", "770"]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.14"
+pyinstaller = "^6.10.0"
+pywinstyles = "^1.8"
+pandas = "^2.2.3"
+tkcalendar = "^1.6.1"
+sv-ttk = "^2.6.0"
+darkdetect = "^0.8.0"
+sqlmodel = "^0.0.22"
+openpyxl = "^3.1.5"
+pydantic = "^2.9.2"
+
+[tool.semantic_release]
+version_toml = [
+    "pyproject.toml:tool.poetry.version",
+]                                                    # version location
+branch = "main"                                      # branch to make releases of
+changelog_file = "CHANGELOG.md"                      # changelog file
+build_command = "pip install poetry && poetry build" # build dists 
 
 [build-system]
-requires = ["hatchling", "hatch-pyinstaller",]
-build-backend = "hatchling.build"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 
-[tool.git-changelog]
-bump = "minor"
-convention = "conventional"
-in-place = false
-# figilter-commits = "0.0.1.."
-marker-line = "<!-- insertion marker -->"
-output = "CHANGELOG.md"
-parse-refs = false
-parse-trailers = false
-provider = "github"
-repository = "."
-sections = "build,deps,feat,fix,refactor"
-template = "keepachangelog"
-version-regex = "^## \\\\[(?P<version>v?[^\\\\]]+)"
-versioning = "semver"
-zerover = true
+[tool.poetry-pyinstaller-plugin]
+# Pyinstaller version (Optional, latest if not set)
+# Does not support version constraint (eg: ^6.4)
+version = "6.10.0"
 
-[tool.pdm]
-distribution = true
+# Disable UPX compression
+disable-upx = true
+
+# Include metadata from selected packages (including dependencies)
+# recursive-copy-metadata = [
+#      "src/certificazione_770"
+# ]
+
+
+[tool.poetry-pyinstaller-plugin.scripts]
+# Equivalent to
+new-certificazione-770 = { source = "src/cli.py", windowed = true, type = "onedir", bundle = true, hiddenimport = ['tkcalendar', 'babel.numbers', 'openpyxl'], icon = "src/new_certificazione_770/assets/main.ico"}
+# Include metadata from selected packages
+copy-metadata = ["sv_ttk"]
+
+
+
+[tool.poetry-pyinstaller-plugin.package]
+"README.md" = "."
+"LICENSE" = "."
+
+[tool.poetry-pyinstaller-plugin.include]
+# loose files in bundle
+"src/new_certificazione_770/assets/*" = "assets"
+".venv/Lib/site-packages/sv_ttk" = "sv_ttk"
+
+[tool.poetry_bumpversion.file."src/new_certificazione_770/__init__.py"]
+# Duplicate the line above to add more files
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'

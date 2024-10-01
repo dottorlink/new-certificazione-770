@@ -13,16 +13,25 @@ from queue import Queue
 from threading import Event
 from tkinter import filedialog, messagebox
 
-from controllers.controller import Controller
-
 # Own modules
-from controllers.result_thread import ResultThread
-from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
-from models.dat_model import DATFile
+try:
+    from controllers import Controller, ResultThread
+    from helpers import MSG_ERROR_TEMPLATE, MSG_SUCCESS_TEMPLATE, MSG_WARNING_TEMPLATE
+    from models import DATFile
+except:
+    from new_certificazione_770.controllers import Controller, ResultThread
+    from new_certificazione_770.helpers import (
+        MSG_ERROR_TEMPLATE,
+        MSG_SUCCESS_TEMPLATE,
+        MSG_WARNING_TEMPLATE,
+    )
+    from new_certificazione_770.models import DATFile
+
 
 # Libs
 from tkcalendar import DateEntry
-from views.dialog import BaseDialog
+
+from .dialog import BaseDialog
 
 # Constants
 VAR_EXPORT_FOLDER = "export_folder"
@@ -59,8 +68,8 @@ class ExportDialog(BaseDialog):
         super().__init__(parent=parent, title=title, **kwargs)
 
     def body(self, master):
-        body_frm = ttk.Frame(master=master, padding=10, width=200)
-        body_frm.pack(fill=tk.BOTH, expand=tk.Y)
+        body_frm = ttk.Frame(master=master, padding=10, width=300)
+        body_frm.pack(fill=tk.BOTH, expand=tk.YES)
 
         # Header
         self.headerbox(master=body_frm, default="export")
@@ -71,16 +80,16 @@ class ExportDialog(BaseDialog):
             text="Complete the form to begin your export process",
             padding=5,
         )
-        self.label_frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        self.label_frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
 
         # Export folder
         frm = ttk.Frame(master=self.label_frm, padding=5)
-        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export folder:")
-        lbl.pack(side=tk.TOP, fill=tk.X)
+        lbl.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
         var = tk.StringVar(master=self, name=VAR_EXPORT_FOLDER, value="")
         ent = ttk.Entry(master=frm, textvariable=var, state="readonly")
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=5)
         ent.bind(sequence="<Return>", func=self.browse)
         btn = ttk.Button(master=frm, image="folder", command=self.browse)
         btn.pack(side=tk.RIGHT, padx=5)
@@ -88,7 +97,7 @@ class ExportDialog(BaseDialog):
 
         # Export type
         frm = ttk.Frame(master=self.label_frm, padding=5)
-        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export type:", width=20)
         lbl.pack(side=tk.LEFT)
         options = [EXPORT_TYPE_DAT]
@@ -96,11 +105,11 @@ class ExportDialog(BaseDialog):
         ent = ttk.Combobox(
             master=frm, textvariable=VAR_EXPORT_TYPE, state="readonly", values=options
         )
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES)
 
         # Export year
         frm = ttk.Frame(master=self.label_frm, padding=5)
-        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export year:", width=20)
         lbl.pack(side=tk.LEFT)
         options = self._args.get(OPT_YEARS_LIST, [2024])
@@ -108,11 +117,11 @@ class ExportDialog(BaseDialog):
         ent = ttk.Combobox(
             master=frm, textvariable=VAR_EXPORT_YEAR, state="readonly", values=options
         )
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES)
 
         # Export signature date
         frm = ttk.Frame(master=self.label_frm, padding=5)
-        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export signature date:", width=20)
         lbl.pack(side=tk.LEFT)
         self.setvar(name=VAR_SIGNATURE_DATE, value=datetime.date.today().isoformat())
@@ -124,11 +133,11 @@ class ExportDialog(BaseDialog):
             state="readonly",
             textvariable=VAR_SIGNATURE_DATE,
         )
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES)
 
         # Export record limit
         frm = ttk.Frame(master=self.label_frm, padding=5)
-        frm.pack(side=tk.TOP, expand=1, fill=tk.X)
+        frm.pack(side=tk.TOP, expand=tk.YES, fill=tk.X)
         lbl = ttk.Label(master=frm, padding=5, text="Export record limit:", width=20)
         lbl.pack(side=tk.LEFT)
         options = ["All", "1000", "100", "10", "5"]
@@ -136,14 +145,14 @@ class ExportDialog(BaseDialog):
         ent = ttk.Combobox(
             master=frm, values=options, state="readonly", textvariable=VAR_EXPORT_LIMIT
         )
-        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y)
+        ent.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES)
 
         # Message frame
         frm = ttk.Frame(master=body_frm, padding=5)
-        frm.pack(side=tk.TOP, fill=tk.X, expand=tk.Y)
+        frm.pack(side=tk.TOP, fill=tk.X, expand=tk.YES)
         self.setvar(name=VAR_MESSAGE, value="Choose a folder")
         lbl = ttk.Label(master=frm, textvariable=VAR_MESSAGE)
-        lbl.pack(side=tk.LEFT, fill=tk.X, expand=tk.Y, padx=5)
+        lbl.pack(side=tk.LEFT, fill=tk.X, expand=tk.YES, padx=5)
         self.action_btn = ttk.Button(
             master=frm,
             text=BTN_EXPORT,
@@ -153,7 +162,7 @@ class ExportDialog(BaseDialog):
         )
         self.action_btn.pack(side=tk.RIGHT, padx=5)
         self.progress_bar = ttk.Progressbar(master=body_frm, mode="indeterminate")
-        self.progress_bar.pack(side=tk.TOP, fill=tk.X, expand=tk.Y, pady=5)
+        self.progress_bar.pack(side=tk.TOP, fill=tk.X, expand=tk.YES, pady=5)
 
         self.treeview = ttk.Treeview(
             master=body_frm,
@@ -161,9 +170,9 @@ class ExportDialog(BaseDialog):
             height=5,
             columns=["Message"],
         )
-        self.treeview.column(column="#0", width=150, anchor="w")
+        self.treeview.column(column="#0", anchor="w")
         self.treeview.column(column="Message", width=20, anchor="w", stretch=True)
-        self.treeview.pack(side=tk.TOP, fill=tk.X, expand=tk.Y, pady=5)
+        self.treeview.pack(side=tk.TOP, fill=tk.X, expand=tk.YES, pady=5)
 
         self.resizable(0, 0)
 
@@ -357,6 +366,7 @@ class ExportDialog(BaseDialog):
         export_signature_date = self.getvar(name=VAR_SIGNATURE_DATE)
         export_code_ente_prev = self._args.get("code_ente_prev", "")
         export_denom_ente_prev = self._args.get("denom_ente_prev", "")
+        export_code_somme_non_sogg = self._args.get("code_somme_non_sogg", "")
 
         _action = f"Start thread {THREAD_EXPORT_DAT}"
         logging.debug(msg=_action)
@@ -368,6 +378,7 @@ class ExportDialog(BaseDialog):
                 export_folder,
                 export_code_ente_prev,
                 export_denom_ente_prev,
+                export_code_somme_non_sogg,
                 export_signature_date,
                 export_type,
                 self._queue,
@@ -470,6 +481,7 @@ def thread_export_data(
     path: str,
     code_ente_prev: str,
     denom_ente_prev: str,
+    code_somme_non_sogg: str,
     signature_date: str,
     export_type: str,
     queue: Queue,
@@ -481,6 +493,7 @@ def thread_export_data(
         path (str): data path for CSV file
         code_ente_prev (str): "codice ente previdenziale" constant to write in CSV
         denom_ente_prev (str): "denominazione ente previdenziale" constant to write in CSV
+        code_somme_non_sogg (str): "codice somme non soggette" constant to write in CSV
         signature_date (str): "data firma" constant to write in CSV
         queue (Queue): input queue for item to write in CSV
         event (Event): break control event
@@ -504,6 +517,7 @@ def thread_export_data(
             path=path,
             code_ente_prev=code_ente_prev,
             denom_ente_prev=denom_ente_prev,
+            code_somme_non_sogg=code_somme_non_sogg,
             data_firma=signature_date,
         )
         _dat_csv.start()
