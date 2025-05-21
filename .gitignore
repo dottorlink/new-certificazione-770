@@ -173,4 +173,4 @@ src/new_certificazione_770/*.db
 ./*.spec
 setup.iss
 version.rc
-src/new_certificazione_770/new-certificazione-770.db
+*.db
