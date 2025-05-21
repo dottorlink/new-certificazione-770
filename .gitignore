@@ -169,8 +169,5 @@ cython_debug/
 .vscode/
 *.rc
 *.spec
-src/new_certificazione_770/*.db
-./*.spec
-setup.iss
-version.rc
+*.iss
 *.db
